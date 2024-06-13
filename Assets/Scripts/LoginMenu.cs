@@ -13,6 +13,15 @@ public class LoginMenu : MonoBehaviour {
     private TMP_Text errorMsg;
     [SerializeField]
     private Scrollbar scrollbar;
+    [SerializeField]
+    private Button loginButton;
+    [SerializeField]
+    private Button registerButton;
+
+    private void Start() {
+        loginButton.onClick.AddListener(OnLoginButtonClick);
+        registerButton.onClick.AddListener(OnRegisterButtonClick);
+    }
 
     private void OnEnable() {
         loginInput.text = "";

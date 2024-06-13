@@ -23,6 +23,15 @@ public class RegisterMenu : MonoBehaviour {
     private TMP_Text errorMsg;
     [SerializeField]
     private Scrollbar scrollbar;
+    [SerializeField]
+    private Button registerButton;
+    [SerializeField]
+    private Button returnButton;
+
+    private void Start() {
+        registerButton.onClick.AddListener(OnRegisterButtonClick);
+        returnButton.onClick.AddListener(OnReturnButtonClick);
+    }
 
     private void OnEnable() {
         loginInput.text = "";
