@@ -1,4 +1,5 @@
 using TMPro;
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -17,6 +18,8 @@ public class LoginMenu : MonoBehaviour {
     private Button loginButton;
     [SerializeField]
     private Button registerButton;
+    [SerializeField]
+    private DatabaseManagement database;
 
     private void Start() {
         loginButton.onClick.AddListener(OnLoginButtonClick);
@@ -40,7 +43,17 @@ public class LoginMenu : MonoBehaviour {
             errorMsg.text = "Has³o nie mo¿e byæ puste.";
             return;
         }
-        //@TODO: Here you would login a user.
+        try {
+            database.Connect(loginInput.text,passwordInput.text);
+        }
+        catch(DatabaseManagement.NonexistentAccountException) {
+            errorMsg.text = "Niepoprawny login lub has³o.";
+            return;
+        }
+        catch(Exception) {
+            errorMsg.text = "Wyst¹pi³ b³¹d.";
+            return;
+        }
         stateManagement.SwitchToMainMenu();
     }
 

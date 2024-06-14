@@ -1,4 +1,5 @@
 using TMPro;
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -16,9 +17,11 @@ public class RegisterMenu : MonoBehaviour {
     [SerializeField]
     private TMP_InputField lastNameInput;
     [SerializeField]
+    private TMP_Dropdown sexDropdown;
+    /*[SerializeField]
     private TMP_InputField callNumberInput;
     [SerializeField]
-    private TMP_InputField emailInput;
+    private TMP_InputField emailInput;*/
     [SerializeField]
     private TMP_Text errorMsg;
     [SerializeField]
@@ -27,6 +30,8 @@ public class RegisterMenu : MonoBehaviour {
     private Button registerButton;
     [SerializeField]
     private Button returnButton;
+    [SerializeField]
+    private DatabaseManagement database;
 
     private void Start() {
         registerButton.onClick.AddListener(OnRegisterButtonClick);
@@ -39,8 +44,9 @@ public class RegisterMenu : MonoBehaviour {
         passwordRepeatInput.text = "";
         firstNameInput.text = "";
         lastNameInput.text = "";
-        callNumberInput.text = "";
-        emailInput.text = "";
+        sexDropdown.value = 0;
+        //callNumberInput.text = "";
+        //emailInput.text = "";
         errorMsg.text = "";
         scrollbar.value = 1.0f;
     }
@@ -71,15 +77,23 @@ public class RegisterMenu : MonoBehaviour {
             errorMsg.text = "Nazwisko nie mo¿e byæ puste.";
             return;
         }
-        if(string.IsNullOrEmpty(callNumberInput.text)) {
+        /*if(string.IsNullOrEmpty(callNumberInput.text)) {
             errorMsg.text = "Nr telefonu nie mo¿e byæ pusty.";
             return;
         }
         if(string.IsNullOrEmpty(emailInput.text)) {
             errorMsg.text = "Adres e-mail nie mo¿e byæ pusty.";
             return;
+        }*/
+
+        bool isMale = sexDropdown.options[sexDropdown.value].text.Equals("Mê¿czyzna");
+        try {
+            database.CreateAccount(loginInput.text,passwordInput.text,firstNameInput.text,lastNameInput.text,isMale);
         }
-        //@TODO: Here you would send a request to the database to create an account.
+        catch(Exception) {
+            errorMsg.text = "Wyst¹pi³ b³¹d.";
+            return;
+        }
         OnReturnButtonClick();
     }
 }
