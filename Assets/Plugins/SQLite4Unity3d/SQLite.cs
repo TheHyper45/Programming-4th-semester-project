@@ -43,6 +43,7 @@ using Sqlite3Statement = Sqlite.Statement;
 #else
 using Sqlite3DatabaseHandle = System.IntPtr;
 using Sqlite3Statement = System.IntPtr;
+using System.Data.SqlTypes;
 #endif
 
 namespace SQLite4Unity3d
@@ -422,6 +423,18 @@ namespace SQLite4Unity3d
 			var decls = map.Columns.Select (p => Orm.SqlDecl (p, StoreDateTimeAsTicks));
 			var decl = string.Join (",\n", decls.ToArray ());
 			query += decl;
+
+			List<string> foreignKeyConstraints = new();
+			foreach(var property in ty.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.SetProperty)) {
+				var foreignKey = property.GetCustomAttribute<ForeignKeyAttribute>();
+				if(foreignKey != null) {
+                    var name = property.GetCustomAttribute<ColumnAttribute>() ?? throw new SqlInvalidForeignKeyException();
+                    foreignKeyConstraints.Add($"FOREIGN KEY({name.Name}) REFERENCES {foreignKey.ForeignTable}({foreignKey.ForeignKey})");
+                }
+			}
+			if(foreignKeyConstraints.Count > 0) {
+				query += ",\n" + string.Join(",\n",foreignKeyConstraints.ToArray());
+			}
 			query += ")";
 			
 			var count = Execute (query);
@@ -1624,6 +1637,17 @@ namespace SQLite4Unity3d
 	{
 	}
 
+	[AttributeUsage(AttributeTargets.Property)]
+	public class ForeignKeyAttribute : Attribute {
+		public string ForeignTable { get; set; }
+		public string ForeignKey { get; set; }
+
+		public ForeignKeyAttribute(string foreignTable,string foreignKey) {
+			ForeignTable = foreignTable;
+			ForeignKey = foreignKey;
+		}
+	}
+
 	[AttributeUsage (AttributeTargets.Property)]
 	public class AutoIncrementAttribute : Attribute
 	{
@@ -1694,6 +1718,10 @@ namespace SQLite4Unity3d
 	[AttributeUsage (AttributeTargets.Property)]
 	public class NotNullAttribute : Attribute
 	{
+	}
+
+	public class SqlInvalidForeignKeyException : Exception {
+		public SqlInvalidForeignKeyException() : base("'ForeignKeyAttribute' requires 'ColumnAttribute'.") {}
 	}
 
 	public class TableMapping

@@ -21,13 +21,13 @@ public class DatabaseManagement : MonoBehaviour {
         public bool Sex { get; set; }
     };
 
-    [Table("Lista_Spotkan")]
+    [Table("Lista_Spotkañ")]
     public class MeetingEntity
     {
-        [Column("ocena"),NotNull]
-        public int grade { get; set; }
-        [Column("idOsoby"), NotNull]
-        public int personId { get; set; }
+        [Column("Ocena"),NotNull]
+        public int Grade { get; set; }
+        [Column("IdOsoby"),NotNull,ForeignKey("Osoby","Id")]
+        public int PersonId { get; set; }
     };
     public class NonexistentAccountException : Exception {
         public NonexistentAccountException() { }
@@ -61,9 +61,8 @@ public class DatabaseManagement : MonoBehaviour {
             File.WriteAllBytes(FilePath,bytes);
         }
         using var conn = new SQLiteConnection(FilePath,true);
-        conn.CreateTable<PearsonEntity>(); 
-        conn.CreateTable<MeetingEntity>(); 
-        //conn.CreateCommand("Alter table Lista_Spotkan add constraint fkOsobyId foreign key (idOsoby) references Osoby(Id);").ExecuteNonQuery();
+        conn.CreateTable<PearsonEntity>();
+        conn.CreateTable<MeetingEntity>();
     }
 
     private string currentLogin = "";
