@@ -4,6 +4,7 @@ using UnityEngine;
 using System;
 using UnityEngine.UI;
 using TMPro;
+using System.Data;
 /// TO DO: 1.Add button to come back to current month
 
 public class Calendar : MonoBehaviour
@@ -49,6 +50,7 @@ public class Calendar : MonoBehaviour
             if (dayColor == Color.white || dayColor == Color.green)
             {
                 obj.GetComponentInChildren<TMP_Text>().text = (dayNum + 1).ToString();
+                
             }
             else
             {
@@ -67,7 +69,8 @@ public class Calendar : MonoBehaviour
     /// Try to figure out why it must be six weeks even though at most there are only 31 days in a month
     /// </summary>
     public Transform[] weeks;
-
+    
+    
     /// <summary>
     /// This is the text object that displays the current month and year
     /// </summary>
@@ -88,11 +91,22 @@ public class Calendar : MonoBehaviour
     {
         UpdateCalendar(DateTime.Now.Year, DateTime.Now.Month);
         AddingMeetingsPanel.SetActive(false);
+        
     }
 
     /// <summary>
     /// Anytime the Calendar is changed we call this to make sure we have the right days for the right month/year
     /// </summary>
+     
+
+    public void ClickingOnDayToSetUpMeetings(int day)
+    {
+
+        int startDay = GetMonthStartDay(currDate.Year, currDate.Month);
+        AddingMeetingsPanel.gameObject.SetActive(true);
+        DataAtThePanel.text = (day - startDay+1).ToString() + " " + MonthAndYear.text;
+
+    }
     void UpdateCalendar(int year, int month)
     {
         DateTime temp = new DateTime(year, month, 1);
@@ -113,16 +127,15 @@ public class Calendar : MonoBehaviour
                     int currDay = (w * 7) + i;
                     if (currDay < startDay || currDay - startDay >= endDay)
                     {
+                        Button button  = weeks[w].GetChild(i).GetComponentInChildren<Button>();
                         newDay = new Day(currDay - startDay, Color.grey, weeks[w].GetChild(i).gameObject);
                         weeks[w].GetChild(i).GetChild(1).gameObject.SetActive(false);
-                        Button button = weeks[w].GetChild(i).GetComponentInChildren<Button>();
                         button.enabled = false;
                         
                     }
                     else
                     {
                         newDay = new Day(currDay - startDay, Color.white, weeks[w].GetChild(i).gameObject);
-                        
                         Button button = weeks[w].GetChild(i).GetComponentInChildren<Button>();
                         button.enabled = true;
                         if(newDay.meeting == true)
@@ -176,6 +189,7 @@ public class Calendar : MonoBehaviour
         {
             days[(DateTime.Now.Day - 1) + startDay].UpdateColor(Color.green);
         }
+        
 
     }
    
@@ -207,25 +221,20 @@ public class Calendar : MonoBehaviour
         if (direction < 0)
         {
             currDate = currDate.AddMonths(-1);
+            int startDay = GetMonthStartDay(currDate.Year, currDate.Month);
+            Debug.Log(startDay);
         }
         else
         {
             currDate = currDate.AddMonths(1);
+            int startDay = GetMonthStartDay(currDate.Year, currDate.Month);
+            Debug.Log(startDay);
         }
 
         UpdateCalendar(currDate.Year, currDate.Month);
     }
-    public void AddingButtonsID()
-    {
-        //maybe Do buttonsID for prefabs 
-        Debug.Log("dosc mam jes 4 rano");
-    }
-    public void ClickingOnDayToSetUpMeetings()
-    {
-        AddingMeetingsPanel.gameObject.SetActive(true);
-        DataAtThePanel.text = MonthAndYear.text;
-        //ToDo Add day to date
-    }
+    
+    
 
     public void AddingMeetings() 
     {
