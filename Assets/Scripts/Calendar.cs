@@ -8,6 +8,8 @@ using TMPro;
 
 public class Calendar : MonoBehaviour
 {
+    [SerializeField] public GameObject AddingMeetingsPanel;
+    [SerializeField] public TMP_Text DataAtThePanel;
     /// <summary>
     /// Cell or slot in the calendar. All the information each day should now about itself
     /// </summary>
@@ -16,7 +18,7 @@ public class Calendar : MonoBehaviour
         public int dayNum;
         public Color dayColor;
         public GameObject obj;
-
+        public bool meeting = false;
         /// <summary>
         /// Constructor of Day
         /// </summary>
@@ -71,6 +73,7 @@ public class Calendar : MonoBehaviour
     /// </summary>
     public TMP_Text MonthAndYear;
 
+    
     /// <summary>
     /// this currDate is the date our Calendar is currently on. The year and month are based on the calendar, 
     /// while the day itself is almost always just 1
@@ -84,6 +87,7 @@ public class Calendar : MonoBehaviour
     private void Start()
     {
         UpdateCalendar(DateTime.Now.Year, DateTime.Now.Month);
+        AddingMeetingsPanel.SetActive(false);
     }
 
     /// <summary>
@@ -110,10 +114,23 @@ public class Calendar : MonoBehaviour
                     if (currDay < startDay || currDay - startDay >= endDay)
                     {
                         newDay = new Day(currDay - startDay, Color.grey, weeks[w].GetChild(i).gameObject);
+                        weeks[w].GetChild(i).GetChild(1).gameObject.SetActive(false);
+                        Button button = weeks[w].GetChild(i).GetComponentInChildren<Button>();
+                        button.enabled = false;
+                        
                     }
                     else
                     {
                         newDay = new Day(currDay - startDay, Color.white, weeks[w].GetChild(i).gameObject);
+                        
+                        Button button = weeks[w].GetChild(i).GetComponentInChildren<Button>();
+                        button.enabled = true;
+                        if(newDay.meeting == true)
+                        {
+                            weeks[w].GetChild(i).GetChild(1).gameObject.SetActive(true);
+                        }
+                        else
+                            weeks[w].GetChild(i).GetChild(1).gameObject.SetActive(false);
                     }
                     days.Add(newDay);
                 }
@@ -129,10 +146,25 @@ public class Calendar : MonoBehaviour
                 if (i < startDay || i - startDay >= endDay)
                 {
                     days[i].UpdateColor(Color.grey);
+                   
+                    weeks[i/7].GetChild(i%7).GetChild(1).gameObject.SetActive(false);
+                    Button button = weeks[i / 7].GetChild(i % 7).GetComponentInChildren<Button>();
+                    button.enabled= false;
                 }
                 else
                 {
                     days[i].UpdateColor(Color.white);
+                    //if (meeting==true) to true a jak nie to false
+
+                    weeks[i / 7].GetChild(i % 7).GetChild(1).gameObject.SetActive(true);
+                    Button button = weeks[i / 7].GetChild(i % 7).GetComponentInChildren<Button>();
+                    button.enabled = true;
+                    if (days[i].meeting == true)
+                    {
+                        weeks[i / 7].GetChild(i % 7).GetChild(1).gameObject.SetActive(true);
+                    }
+                    else
+                        weeks[i / 7].GetChild(i % 7).GetChild(1).gameObject.SetActive(false);
                 }
 
                 days[i].UpdateDay(i - startDay);
@@ -182,5 +214,27 @@ public class Calendar : MonoBehaviour
         }
 
         UpdateCalendar(currDate.Year, currDate.Month);
+    }
+    public void AddingButtonsID()
+    {
+        //maybe Do buttonsID for prefabs 
+        Debug.Log("dosc mam jes 4 rano");
+    }
+    public void ClickingOnDayToSetUpMeetings()
+    {
+        AddingMeetingsPanel.gameObject.SetActive(true);
+        DataAtThePanel.text = MonthAndYear.text;
+        //ToDo Add day to date
+    }
+
+    public void AddingMeetings() 
+    {
+        AddingMeetingsPanel.gameObject.SetActive(false);
+        //ToDo Showing green square as a reminder
+    }
+    public void CloseAddingMeetings()
+    {
+
+        AddingMeetingsPanel.gameObject.SetActive(false);
     }
 }
