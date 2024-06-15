@@ -10,7 +10,39 @@ using System.Data;
 public class Calendar : MonoBehaviour
 {
     [SerializeField] public GameObject AddingMeetingsPanel;
-    [SerializeField] public TMP_Text DataAtThePanel;
+    [SerializeField] public TMP_Text DataAtThePanel; 
+    [SerializeField] public Button AddingMeetingsButton; 
+    [SerializeField] public TMP_InputField HourAndMinutesText;
+
+    /// <summary>
+    /// All the days in the month. After we make our first calendar we store these days in this list so we do not have to recreate them every time.
+    /// </summary>
+    private List<Day> days = new List<Day>();
+
+
+    private List<Meeting> meets = new List<Meeting>();
+
+    /// <summary>
+    /// Setup in editor since there will always be six weeks. 
+    /// Try to figure out why it must be six weeks even though at most there are only 31 days in a month
+    /// </summary>
+    public Transform[] weeks;
+
+
+    /// <summary>
+    /// This is the text object that displays the current month and year
+    /// </summary>
+    public TMP_Text MonthAndYear;
+
+
+    /// <summary>
+    /// this currDate is the date our Calendar is currently on. The year and month are based on the calendar, 
+    /// while the day itself is almost always just 1
+    /// If you have some option to select a day in the calendar, you would want the change this objects day value to the last selected day
+    /// </summary>
+    public DateTime currDate = DateTime.Now;
+
+    public int dayTocalculation = 0;
     /// <summary>
     /// Cell or slot in the calendar. All the information each day should now about itself
     /// </summary>
@@ -19,7 +51,7 @@ public class Calendar : MonoBehaviour
         public int dayNum;
         public Color dayColor;
         public GameObject obj;
-        public bool meeting = false;
+        
         /// <summary>
         /// Constructor of Day
         /// </summary>
@@ -57,32 +89,32 @@ public class Calendar : MonoBehaviour
                 obj.GetComponentInChildren<TMP_Text>().text = "";
             }
         }
+        
     }
 
-    /// <summary>
-    /// All the days in the month. After we make our first calendar we store these days in this list so we do not have to recreate them every time.
-    /// </summary>
-    private List<Day> days = new List<Day>();
+    public class Meeting
+    {
+        public int Year;
+        public int Month;
+        public int Day;
+        public int Hour;
+        //public int Minute=0;
+        public int PersonID=1;
+        public bool Meet = false;
 
-    /// <summary>
-    /// Setup in editor since there will always be six weeks. 
-    /// Try to figure out why it must be six weeks even though at most there are only 31 days in a month
-    /// </summary>
-    public Transform[] weeks;
-    
-    
-    /// <summary>
-    /// This is the text object that displays the current month and year
-    /// </summary>
-    public TMP_Text MonthAndYear;
+        public Meeting(int year, int month, int day, int hour, /*int minute*/ int personID, bool meet)
+        {
+            Year = year;
+            Month = month;
+            Day = day;
+            Hour = hour;
+            //Minute = minute;
+            PersonID = personID ;
+            Meet = meet;
+        }
+    }
 
-    
-    /// <summary>
-    /// this currDate is the date our Calendar is currently on. The year and month are based on the calendar, 
-    /// while the day itself is almost always just 1
-    /// If you have some option to select a day in the calendar, you would want the change this objects day value to the last selected day
-    /// </summary>
-    public DateTime currDate = DateTime.Now;
+   
 
     /// <summary>
     /// In start we set the Calendar to the current date
@@ -91,7 +123,7 @@ public class Calendar : MonoBehaviour
     {
         UpdateCalendar(DateTime.Now.Year, DateTime.Now.Month);
         AddingMeetingsPanel.SetActive(false);
-        
+        AddingMeetingsButton.onClick.AddListener(AddingMeetings);
     }
 
     /// <summary>
@@ -101,7 +133,7 @@ public class Calendar : MonoBehaviour
 
     public void ClickingOnDayToSetUpMeetings(int day)
     {
-
+        dayTocalculation = day;
         int startDay = GetMonthStartDay(currDate.Year, currDate.Month);
         AddingMeetingsPanel.gameObject.SetActive(true);
         DataAtThePanel.text = (day - startDay+1).ToString() + " " + MonthAndYear.text;
@@ -138,12 +170,21 @@ public class Calendar : MonoBehaviour
                         newDay = new Day(currDay - startDay, Color.white, weeks[w].GetChild(i).gameObject);
                         Button button = weeks[w].GetChild(i).GetComponentInChildren<Button>();
                         button.enabled = true;
-                        if(newDay.meeting == true)
+                        bool hasMeeting = false;
+                        foreach (var meeeting in meets)
                         {
-                            weeks[w].GetChild(i).GetChild(1).gameObject.SetActive(true);
+                            if (meeeting.Year == year && meeeting.Month == month && meeeting.Day == currDay - startDay)
+                            {
+                                hasMeeting = true;
+                                weeks[w].GetChild(i).GetChild(1).gameObject.SetActive(true);
+                                break;
+                            }
+                            
                         }
-                        else
+                        if (!hasMeeting) {
                             weeks[w].GetChild(i).GetChild(1).gameObject.SetActive(false);
+                        }
+                        
                     }
                     days.Add(newDay);
                 }
@@ -166,18 +207,28 @@ public class Calendar : MonoBehaviour
                 }
                 else
                 {
+
                     days[i].UpdateColor(Color.white);
                     //if (meeting==true) to true a jak nie to false
 
                     weeks[i / 7].GetChild(i % 7).GetChild(1).gameObject.SetActive(true);
                     Button button = weeks[i / 7].GetChild(i % 7).GetComponentInChildren<Button>();
                     button.enabled = true;
-                    if (days[i].meeting == true)
+                    bool hasMeeting = false;
+                    foreach (var meeeting in meets)
                     {
-                        weeks[i / 7].GetChild(i % 7).GetChild(1).gameObject.SetActive(true);
+                        if (meeeting.Year == year && meeeting.Month == month && meeeting.Day == i - startDay)
+                        {
+                            hasMeeting = true;
+                            weeks[i / 7].GetChild(i % 7).GetChild(1).gameObject.SetActive(true);
+                            break;
+                        }
+                        
                     }
-                    else
+                    if (!hasMeeting)
+                    {
                         weeks[i / 7].GetChild(i % 7).GetChild(1).gameObject.SetActive(false);
+                    }
                 }
 
                 days[i].UpdateDay(i - startDay);
@@ -192,7 +243,20 @@ public class Calendar : MonoBehaviour
         
 
     }
-   
+    public  void AddingMeetings()
+    {
+        
+        int startDay = GetMonthStartDay(currDate.Year, currDate.Month);
+        //string temp = HourAndMinutesText.text;
+        int hour = 2;
+        //hour = int.Parse(temp);
+        Meeting meeting;
+        meeting = new Meeting(currDate.Year, currDate.Month, dayTocalculation - startDay, hour, 1, true);
+        AddingMeetingsPanel.gameObject.SetActive(false);
+        meets.Add(meeting);
+        UpdateCalendar(currDate.Year, currDate.Month);
+    }
+
     /// <summary>
     /// This returns which day of the week the month is starting on
     /// </summary>
@@ -222,13 +286,13 @@ public class Calendar : MonoBehaviour
         {
             currDate = currDate.AddMonths(-1);
             int startDay = GetMonthStartDay(currDate.Year, currDate.Month);
-            Debug.Log(startDay);
+           
         }
         else
         {
             currDate = currDate.AddMonths(1);
             int startDay = GetMonthStartDay(currDate.Year, currDate.Month);
-            Debug.Log(startDay);
+           
         }
 
         UpdateCalendar(currDate.Year, currDate.Month);
@@ -236,14 +300,9 @@ public class Calendar : MonoBehaviour
     
     
 
-    public void AddingMeetings() 
-    {
-        AddingMeetingsPanel.gameObject.SetActive(false);
-        //ToDo Showing green square as a reminder
-    }
+    
     public void CloseAddingMeetings()
     {
-
         AddingMeetingsPanel.gameObject.SetActive(false);
     }
 }
