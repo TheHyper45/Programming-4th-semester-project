@@ -19,7 +19,7 @@ public class DatabaseManagement : MonoBehaviour {
         public string LastName { get; set; }
         [Column("P³eæ"),NotNull]
         public bool Sex { get; set; }
-    };
+    }
 
     [Table("Lista_Spotkañ")]
     public class MeetingEntity
@@ -28,7 +28,16 @@ public class DatabaseManagement : MonoBehaviour {
         public int Grade { get; set; }
         [Column("IdOsoby"),NotNull,ForeignKey("Osoby","Id")]
         public int PersonId { get; set; }
-    };
+    }
+
+    /*[Table("£¹cz_Jêzyki")]
+    public class ConnectLanguagesEntity {
+        [Column("Priorytet"),NotNull]
+        public float Priority {  get; set; }
+        [Column("IdOsoby"),NotNull,ForeignKey("Osoby","Id")]
+        public int PersonId { get; set; }
+    }*/
+
     public class NonexistentAccountException : Exception {
         public NonexistentAccountException() { }
     };
