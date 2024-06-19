@@ -18,4 +18,8 @@ public class FormOption : MonoBehaviour {
         headerText.text = text;
         optionsDropdown.value = option;
     }
+
+    public string GetHeaderText() {
+        return headerText.text;
+    }
 }
