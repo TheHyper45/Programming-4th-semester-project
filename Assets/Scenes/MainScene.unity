@@ -2659,19 +2659,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 256601385}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 407355559}
-        m_TargetAssemblyTypeName: Calendar, Assembly-CSharp
-        m_MethodName: SwitchMonth
-        m_Mode: 3
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: -1
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &256601385
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3583,10 +3571,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   AddingMeetingsPanel: {fileID: 1892056974}
   DataAtThePanel: {fileID: 1681431298}
-  AddingMeetingsButton: {fileID: 1588155737}
-  DeleteMeetingsButton: {fileID: 2048409086}
+  addingMeetingsButton: {fileID: 1588155737}
+  deleteMeetingsButton: {fileID: 2048409086}
+  closeMeetingsButton: {fileID: 1082547226}
   HourOfMeetingText: {fileID: 853541321}
   WholeAboutMeetingText: {fileID: 882563786}
+  leftClickMonthButton: {fileID: 256601384}
+  rightClickMonthButton: {fileID: 1542737094}
+  errorText: {fileID: 1366087392}
   weeks:
   - {fileID: 2103828156007428793}
   - {fileID: 950848357}
@@ -3595,7 +3587,6 @@ MonoBehaviour:
   - {fileID: 1649076113}
   - {fileID: 1440454238}
   MonthAndYear: {fileID: 438836477}
-  dayTocalculation: 0
 --- !u!1 &434794288
 GameObject:
   m_ObjectHideFlags: 0
@@ -10328,19 +10319,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1082547227}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 407355559}
-        m_TargetAssemblyTypeName: Calendar, Assembly-CSharp
-        m_MethodName: CloseAddingMeetings
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &1082547227
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12133,6 +12112,119 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: -20, y: -20}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1001 &1366087390
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1892056975}
+    m_Modifications:
+    - target: {fileID: 3627098526623024985, guid: eb0e7c76701b710439e0347c3e01921b, type: 3}
+      propertyPath: m_Name
+      value: ErrorText
+      objectReference: {fileID: 0}
+    - target: {fileID: 8811244866087576711, guid: eb0e7c76701b710439e0347c3e01921b, type: 3}
+      propertyPath: m_Pivot.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8811244866087576711, guid: eb0e7c76701b710439e0347c3e01921b, type: 3}
+      propertyPath: m_Pivot.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8811244866087576711, guid: eb0e7c76701b710439e0347c3e01921b, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8811244866087576711, guid: eb0e7c76701b710439e0347c3e01921b, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8811244866087576711, guid: eb0e7c76701b710439e0347c3e01921b, type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8811244866087576711, guid: eb0e7c76701b710439e0347c3e01921b, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8811244866087576711, guid: eb0e7c76701b710439e0347c3e01921b, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 700
+      objectReference: {fileID: 0}
+    - target: {fileID: 8811244866087576711, guid: eb0e7c76701b710439e0347c3e01921b, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 60
+      objectReference: {fileID: 0}
+    - target: {fileID: 8811244866087576711, guid: eb0e7c76701b710439e0347c3e01921b, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8811244866087576711, guid: eb0e7c76701b710439e0347c3e01921b, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8811244866087576711, guid: eb0e7c76701b710439e0347c3e01921b, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8811244866087576711, guid: eb0e7c76701b710439e0347c3e01921b, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8811244866087576711, guid: eb0e7c76701b710439e0347c3e01921b, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8811244866087576711, guid: eb0e7c76701b710439e0347c3e01921b, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8811244866087576711, guid: eb0e7c76701b710439e0347c3e01921b, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8811244866087576711, guid: eb0e7c76701b710439e0347c3e01921b, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8811244866087576711, guid: eb0e7c76701b710439e0347c3e01921b, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -40
+      objectReference: {fileID: 0}
+    - target: {fileID: 8811244866087576711, guid: eb0e7c76701b710439e0347c3e01921b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8811244866087576711, guid: eb0e7c76701b710439e0347c3e01921b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8811244866087576711, guid: eb0e7c76701b710439e0347c3e01921b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: eb0e7c76701b710439e0347c3e01921b, type: 3}
+--- !u!224 &1366087391 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 8811244866087576711, guid: eb0e7c76701b710439e0347c3e01921b, type: 3}
+  m_PrefabInstance: {fileID: 1366087390}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1366087392 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5228947515073167745, guid: eb0e7c76701b710439e0347c3e01921b, type: 3}
+  m_PrefabInstance: {fileID: 1366087390}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &1366288080
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -13998,19 +14090,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1542737095}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 407355559}
-        m_TargetAssemblyTypeName: Calendar, Assembly-CSharp
-        m_MethodName: SwitchMonth
-        m_Mode: 3
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 1
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &1542737095
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -14062,7 +14142,7 @@ GameObject:
   - component: {fileID: 1588155735}
   - component: {fileID: 1588155737}
   m_Layer: 5
-  m_Name: AddMeeting
+  m_Name: AddMeetingButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -16899,6 +16979,7 @@ RectTransform:
   - {fileID: 1463857666}
   - {fileID: 882563785}
   - {fileID: 2048409085}
+  - {fileID: 1366087391}
   m_Father: {fileID: 407355556}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -17632,7 +17713,7 @@ GameObject:
   - component: {fileID: 2048409087}
   - component: {fileID: 2048409086}
   m_Layer: 5
-  m_Name: DeleteMeetingFromCalendar
+  m_Name: DeleteMeetingButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

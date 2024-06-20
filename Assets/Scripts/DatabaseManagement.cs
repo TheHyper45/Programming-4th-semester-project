@@ -69,7 +69,7 @@ public class DatabaseManagement : MonoBehaviour {
         //conn.CreateTable<MeetingEntity>();
     }
 
-    private string currentLogin = "";
+    //private string currentLogin = "";
     public bool CurrentSex { get; private set; } = false;
 
     public void Connect(string login,string password) {

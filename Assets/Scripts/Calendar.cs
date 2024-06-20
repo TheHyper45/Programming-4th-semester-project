@@ -5,151 +5,124 @@ using UnityEngine.UI;
 using TMPro;
 /// TO DO: 1.Add button to come back to current month
 
-public class Calendar : MonoBehaviour
-{
-    [SerializeField] private GameObject AddingMeetingsPanel;
-    [SerializeField] private TMP_Text DataAtThePanel; 
-    [SerializeField] private Button AddingMeetingsButton; 
-    [SerializeField] private Button DeleteMeetingsButton; 
-    [SerializeField] private TMP_InputField HourOfMeetingText;
-    [SerializeField] private TMP_Text WholeAboutMeetingText;
+public class Calendar : MonoBehaviour {
+    [SerializeField]
+    private GameObject AddingMeetingsPanel;
+    [SerializeField]
+    private TMP_Text DataAtThePanel; 
+    [SerializeField]
+    private Button addingMeetingsButton; 
+    [SerializeField]
+    private Button deleteMeetingsButton;
+    [SerializeField]
+    private Button closeMeetingsButton;
+    [SerializeField]
+    private TMP_InputField HourOfMeetingText;
+    [SerializeField]
+    private TMP_Text WholeAboutMeetingText;
+    [SerializeField]
+    private Button leftClickMonthButton;
+    [SerializeField]
+    private Button rightClickMonthButton;
+    [SerializeField]
+    private TMP_Text errorText;
 
-    /// <summary>
-    /// All the days in the month. After we make our first calendar we store these days in this list so we do not have to recreate them every time.
-    /// </summary>
-    private readonly List<Day> days = new();
-
-
-    private readonly List<Meeting> meets = new();
-
-    /// <summary>
-    /// Setup in editor since there will always be six weeks. 
-    /// Try to figure out why it must be six weeks even though at most there are only 31 days in a month
-    /// </summary>
     public Transform[] weeks;
-
-
-    /// <summary>
-    /// This is the text object that displays the current month and year
-    /// </summary>
     public TMP_Text MonthAndYear;
 
+    private readonly List<Day> days = new();
+    private readonly List<Meeting> meets = new();
+    private DateTime currDate = DateTime.Now;
+    private int dayToCalculation = 0;
 
-    /// <summary>
-    /// this currDate is the date our Calendar is currently on. The year and month are based on the calendar, 
-    /// while the day itself is almost always just 1
-    /// If you have some option to select a day in the calendar, you would want the change this objects day value to the last selected day
-    /// </summary>
-    public DateTime currDate = DateTime.Now;
+    private float errorTextClearCooldown = 0.0f;
 
-    public int dayTocalculation = 0;
-    /// <summary>
-    /// Cell or slot in the calendar. All the information each day should now about itself
-    /// </summary>
-    public class Day
-    {
-        public int dayNum;
-        public Color dayColor;
-        public GameObject obj;
-        
-        /// <summary>
-        /// Constructor of Day
-        /// </summary>
-        public Day(int dayNum, Color dayColor, GameObject obj)
-        {
-            this.dayNum = dayNum;
-            this.obj = obj;
-            UpdateColor(dayColor);
-            UpdateDay(dayNum);
+    public class Day {
+        public int DayNum { get; private set; }
+        public Color DayColor { get; private set; }
+        public GameObject Obj { get; private set; }
+
+        public Day(int _dayNum,Color _dayColor,GameObject _obj) {
+            Obj = _obj;
+            UpdateColor(_dayColor);
+            UpdateDay(_dayNum);
         }
 
-        /// <summary>
-        /// Call this when updating the color so that both the dayColor is updated, as well as the visual color on the screen
-        /// </summary>
-        public void UpdateColor(Color newColor)
-        {
-            obj.GetComponent<Image>().color = newColor;
-            dayColor = newColor;
+        public void UpdateColor(Color newColor) {
+            Obj.GetComponent<Image>().color = newColor;
+            DayColor = newColor;
         }
 
-        /// <summary>
-        /// When updating the day we decide whether we should show the dayNum based on the color of the day
-        /// This means the color should always be updated before the day is updated
-        /// </summary>
-        public void UpdateDay(int newDayNum)
-        {
-            this.dayNum = newDayNum;
-            if (dayColor == Color.white || dayColor == Color.green)
-            {
-                obj.GetComponentInChildren<TMP_Text>().text = (dayNum + 1).ToString();
-                
+        public void UpdateDay(int newDayNum) {
+            DayNum = newDayNum;
+            if(DayColor == Color.white || DayColor == Color.green) {
+                Obj.GetComponentInChildren<TMP_Text>().text = (DayNum + 1).ToString();
             }
-            else
-            {
-                obj.GetComponentInChildren<TMP_Text>().text = "";
+            else {
+                Obj.GetComponentInChildren<TMP_Text>().text = "";
             }
         }
-        
     }
 
-    public class Meeting
-    {
+    public class Meeting {
         public int Year;
         public int Month;
         public int Day;
         public int Hour;
-        
-        public int PersonID=1;
-        public bool Meet = false;
+        public int PersonID;
+        public bool Meet;
 
-        public Meeting(int year, int month, int day, int hour,  int personID, bool meet)
-        {
+        public Meeting(int year,int month,int day,int hour,int personID,bool meet) {
             Year = year;
             Month = month;
             Day = day;
             Hour = hour;
-            
-            PersonID = personID ;
+            PersonID = personID;
             Meet = meet;
         }
     }
 
-   
+    private void Start() {
+        leftClickMonthButton.onClick.AddListener(() => {
+            currDate = currDate.AddMonths(-1);
+            UpdateCalendar(currDate.Year,currDate.Month);
+        });
+        rightClickMonthButton.onClick.AddListener(() => {
+            currDate = currDate.AddMonths(1);
+            UpdateCalendar(currDate.Year,currDate.Month);
+        });
 
-    /// <summary>
-    /// In start we set the Calendar to the current date
-    /// </summary>
-    private void Start()
-    {
-        UpdateCalendar(DateTime.Now.Year, DateTime.Now.Month);
+        UpdateCalendar(currDate.Year,currDate.Month);
         AddingMeetingsPanel.SetActive(false);
-        AddingMeetingsButton.onClick.AddListener(AddingMeetings);
-        DeleteMeetingsButton.onClick.AddListener(deleteMeetings);
+        addingMeetingsButton.onClick.AddListener(AddingMeetings);
+        deleteMeetingsButton.onClick.AddListener(DeleteMeetings);
+        closeMeetingsButton.onClick.AddListener(() => { AddingMeetingsPanel.SetActive(false); });
     }
 
-    /// <summary>
-    /// Anytime the Calendar is changed we call this to make sure we have the right days for the right month/year
-    /// </summary>
-     
+    private void Update() {
+        errorTextClearCooldown -= Time.deltaTime;
+        if(errorTextClearCooldown < 0.0f) {
+            errorText.text = "";
+            errorTextClearCooldown = 0.0f;
+        }
+    }
 
-    public void ClickingOnDayToSetUpMeetings(int day)
-    {
-        dayTocalculation = day;
-        int startDay = GetMonthStartDay(currDate.Year, currDate.Month);
-        AddingMeetingsPanel.gameObject.SetActive(true);
-        DataAtThePanel.text = (day - startDay+1).ToString() + " " + MonthAndYear.text;
+    //Says '0 refs' but it is used in the editor.
+    public void ClickingOnDayToSetUpMeetings(int day) {
+        dayToCalculation = day;
+        int startDay = GetMonthStartDay(currDate.Year,currDate.Month);
+        AddingMeetingsPanel.SetActive(true);
+        DataAtThePanel.text = (day - startDay + 1).ToString() + " " + MonthAndYear.text;
         ShowMeeting();
     }
-    void UpdateCalendar(int year, int month)
-    {
-        DateTime temp = new DateTime(year, month, 1);
+
+    void UpdateCalendar(int year,int month) {
+        DateTime temp = new DateTime(year,month,1);
         currDate = temp;
         MonthAndYear.text = temp.ToString("MMMM") + " " + temp.Year.ToString();
-        int startDay = GetMonthStartDay(year, month);
-        int endDay = GetTotalNumberOfDays(year, month);
+        int startDay = GetMonthStartDay(year,month);
+        int endDay = DateTime.DaysInMonth(year,month);
 
-        ///Create the days
-        ///This only happens for our first Update Calendar when we have no Day objects therefore we must create them
         if (days.Count == 0)
         {
             for (int w = 0; w < 6; ++w)
@@ -191,9 +164,6 @@ public class Calendar : MonoBehaviour
                 }
             }
         }
-
-        ///loop through days
-        ///Since we already have the days objects, we can just update them rather than creating new ones
         else
         {
             for (int i = 0; i < 42; i++)
@@ -234,121 +204,61 @@ public class Calendar : MonoBehaviour
             }
         }
 
-        ///This just checks if today is on our calendar. If so, we highlight it in green
-        if (DateTime.Now.Year == year && DateTime.Now.Month == month)
-        {
+        if(DateTime.Now.Year == year && DateTime.Now.Month == month) {
             days[(DateTime.Now.Day - 1) + startDay].UpdateColor(Color.green);
         }
-        
-
     }
-    public  void AddingMeetings()
-    {
-        
-        int startDay = GetMonthStartDay(currDate.Year, currDate.Month);
+    private void AddingMeetings() {
+        int startDay = GetMonthStartDay(currDate.Year,currDate.Month);
         string temp = HourOfMeetingText.text;
-        int hour = int.Parse(temp);
-        Meeting meeting;
-        meeting = new Meeting(currDate.Year, currDate.Month, dayTocalculation - startDay, hour, 1, true);
-        AddingMeetingsPanel.gameObject.SetActive(false);
-        meets.Add(meeting);
-        UpdateCalendar(currDate.Year, currDate.Month);
-    }
-    public void ShowMeeting()
-    {
-        int startDay = GetMonthStartDay(currDate.Year, currDate.Month);
-        if (meets.Count == 0)
-        {
-            WholeAboutMeetingText.text = ("Brak spotkan");
-
+        if(int.TryParse(temp,out int hour)) {
+            Meeting meeting;
+            meeting = new Meeting(currDate.Year,currDate.Month,dayToCalculation - startDay,hour,1,true);
+            AddingMeetingsPanel.SetActive(false);
+            meets.Add(meeting);
+            UpdateCalendar(currDate.Year,currDate.Month);
         }
         else {
-            foreach (var meeting in meets)
-            {
-                if (meeting.Year == currDate.Year && meeting.Month == currDate.Month && meeting.Day == dayTocalculation - startDay)
-                {
-                    if (meeting.Month <= 9)
-                    {
-                        WholeAboutMeetingText.text = meeting.Hour.ToString() + ":00 " + meeting.Day.ToString() + ".0" + meeting.Month.ToString() + "." + meeting.Year.ToString();
-                    }
-                    else
-                    {
-                        WholeAboutMeetingText.text = meeting.Hour.ToString() + ":00 " + meeting.Day.ToString() + "." + meeting.Month.ToString() + "." + meeting.Year.ToString();
-                    }
-                }
-                else
-                {
-                    WholeAboutMeetingText.text = ("Brak spotkan");
-                }
-
-            }
+            errorText.text = "Musisz podaæ godzinê.";
+            errorTextClearCooldown = 3.0f;
         }
-        
-        
     }
 
-    public void deleteMeetings()
-    {
-        int startDay = GetMonthStartDay(currDate.Year, currDate.Month);
-        foreach (var meeting in meets)
-        {
-            if (meeting.Year == currDate.Year && meeting.Month == currDate.Month && meeting.Day == dayTocalculation - startDay)
-            {
+    public void ShowMeeting() {
+        int startDay = GetMonthStartDay(currDate.Year,currDate.Month);
+        if(meets.Count == 0) {
+            WholeAboutMeetingText.text = "Brak spotkañ";
+        }
+        else {
+            foreach(var meeting in meets) {
+                if(meeting.Year == currDate.Year && meeting.Month == currDate.Month && meeting.Day == dayToCalculation - startDay) {
+                    if(meeting.Month <= 9) {
+                        WholeAboutMeetingText.text = $"{meeting.Hour}:00 {meeting.Day}.0{meeting.Month}.{meeting.Year}";
+                    }
+                    else {
+                        WholeAboutMeetingText.text = $"{meeting.Hour}:00 {meeting.Day}.{meeting.Month}.{meeting.Year}";
+                    }
+                }
+                else {
+                    WholeAboutMeetingText.text = "Brak spotkañ";
+                }
+            }
+        }
+    }
+
+    private void DeleteMeetings() {
+        int startDay = GetMonthStartDay(currDate.Year,currDate.Month);
+        foreach(var meeting in meets) {
+            if(meeting.Year == currDate.Year && meeting.Month == currDate.Month && meeting.Day == dayToCalculation - startDay) {
                 meets.Remove(meeting);
                 UpdateCalendar(currDate.Year, currDate.Month);
                 break;
             }
         }
-        
         ShowMeeting();
-        
-    }
-    /// <summary>
-    /// This returns which day of the week the month is starting on
-    /// </summary>
-    int GetMonthStartDay(int year, int month)
-    {
-        DateTime temp = new DateTime(year, month, 1);
-
-        //DayOfWeek Sunday == 0, Saturday == 6 etc.
-        return (int)temp.DayOfWeek;
     }
 
-    /// <summary>
-    /// Gets the number of days in the given month.
-    /// </summary>
-    int GetTotalNumberOfDays(int year, int month)
-    {
-        return DateTime.DaysInMonth(year, month);
-    }
-
-    /// <summary>
-    /// This either adds or subtracts one month from our currDate.
-    /// The arrows will use this function to switch to past or future months
-    /// </summary>
-    public void SwitchMonth(int direction)
-    {
-        if (direction < 0)
-        {
-            currDate = currDate.AddMonths(-1);
-            int startDay = GetMonthStartDay(currDate.Year, currDate.Month);
-           
-        }
-        else
-        {
-            currDate = currDate.AddMonths(1);
-            int startDay = GetMonthStartDay(currDate.Year, currDate.Month);
-           
-        }
-
-        UpdateCalendar(currDate.Year, currDate.Month);
-    }
-    
-    
-
-    
-    public void CloseAddingMeetings()
-    {
-        AddingMeetingsPanel.gameObject.SetActive(false);
+    private int GetMonthStartDay(int year,int month) {
+        return (int)(new DateTime(year,month,1)).DayOfWeek;
     }
 }
