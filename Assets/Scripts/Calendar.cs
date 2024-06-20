@@ -12,7 +12,9 @@ public class Calendar : MonoBehaviour
     [SerializeField] public GameObject AddingMeetingsPanel;
     [SerializeField] public TMP_Text DataAtThePanel; 
     [SerializeField] public Button AddingMeetingsButton; 
-    [SerializeField] public TMP_InputField HourAndMinutesText;
+    [SerializeField] public Button DeleteMeetingsButton; 
+    [SerializeField] public TMP_InputField HourOfMeetingText;
+    [SerializeField] public TMP_Text WholeAboutMeetingText;
 
     /// <summary>
     /// All the days in the month. After we make our first calendar we store these days in this list so we do not have to recreate them every time.
@@ -98,17 +100,17 @@ public class Calendar : MonoBehaviour
         public int Month;
         public int Day;
         public int Hour;
-        //public int Minute=0;
+        
         public int PersonID=1;
         public bool Meet = false;
 
-        public Meeting(int year, int month, int day, int hour, /*int minute*/ int personID, bool meet)
+        public Meeting(int year, int month, int day, int hour,  int personID, bool meet)
         {
             Year = year;
             Month = month;
             Day = day;
             Hour = hour;
-            //Minute = minute;
+            
             PersonID = personID ;
             Meet = meet;
         }
@@ -124,6 +126,7 @@ public class Calendar : MonoBehaviour
         UpdateCalendar(DateTime.Now.Year, DateTime.Now.Month);
         AddingMeetingsPanel.SetActive(false);
         AddingMeetingsButton.onClick.AddListener(AddingMeetings);
+        DeleteMeetingsButton.onClick.AddListener(deleteMeetings);
     }
 
     /// <summary>
@@ -137,7 +140,7 @@ public class Calendar : MonoBehaviour
         int startDay = GetMonthStartDay(currDate.Year, currDate.Month);
         AddingMeetingsPanel.gameObject.SetActive(true);
         DataAtThePanel.text = (day - startDay+1).ToString() + " " + MonthAndYear.text;
-
+        ShowMeeting();
     }
     void UpdateCalendar(int year, int month)
     {
@@ -209,8 +212,6 @@ public class Calendar : MonoBehaviour
                 {
 
                     days[i].UpdateColor(Color.white);
-                    //if (meeting==true) to true a jak nie to false
-
                     weeks[i / 7].GetChild(i % 7).GetChild(1).gameObject.SetActive(true);
                     Button button = weeks[i / 7].GetChild(i % 7).GetComponentInChildren<Button>();
                     button.enabled = true;
@@ -247,16 +248,63 @@ public class Calendar : MonoBehaviour
     {
         
         int startDay = GetMonthStartDay(currDate.Year, currDate.Month);
-        //string temp = HourAndMinutesText.text;
-        int hour = 2;
-        //hour = int.Parse(temp);
+        string temp = HourOfMeetingText.text;
+        int hour = int.Parse(temp);
         Meeting meeting;
         meeting = new Meeting(currDate.Year, currDate.Month, dayTocalculation - startDay, hour, 1, true);
         AddingMeetingsPanel.gameObject.SetActive(false);
         meets.Add(meeting);
         UpdateCalendar(currDate.Year, currDate.Month);
     }
+    public void ShowMeeting()
+    {
+        int startDay = GetMonthStartDay(currDate.Year, currDate.Month);
+        if (meets.Count == 0)
+        {
+            WholeAboutMeetingText.text = ("Brak spotkan");
 
+        }
+        else {
+            foreach (var meeting in meets)
+            {
+                if (meeting.Year == currDate.Year && meeting.Month == currDate.Month && meeting.Day == dayTocalculation - startDay)
+                {
+                    if (meeting.Month <= 9)
+                    {
+                        WholeAboutMeetingText.text = meeting.Hour.ToString() + ":00 " + meeting.Day.ToString() + ".0" + meeting.Month.ToString() + "." + meeting.Year.ToString();
+                    }
+                    else
+                    {
+                        WholeAboutMeetingText.text = meeting.Hour.ToString() + ":00 " + meeting.Day.ToString() + "." + meeting.Month.ToString() + "." + meeting.Year.ToString();
+                    }
+                }
+                else
+                {
+                    WholeAboutMeetingText.text = ("Brak spotkan");
+                }
+
+            }
+        }
+        
+        
+    }
+
+    public void deleteMeetings()
+    {
+        int startDay = GetMonthStartDay(currDate.Year, currDate.Month);
+        foreach (var meeting in meets)
+        {
+            if (meeting.Year == currDate.Year && meeting.Month == currDate.Month && meeting.Day == dayTocalculation - startDay)
+            {
+                meets.Remove(meeting);
+                UpdateCalendar(currDate.Year, currDate.Month);
+                break;
+            }
+        }
+        
+        ShowMeeting();
+        
+    }
     /// <summary>
     /// This returns which day of the week the month is starting on
     /// </summary>
