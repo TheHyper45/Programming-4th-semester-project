@@ -3473,6 +3473,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 83071283}
     m_Modifications:
     - target: {fileID: 1840904383920436939, guid: c8f9a93e1d89e75459512f9db99d3e05, type: 3}
+      propertyPath: optionPrefab
+      value: 
+      objectReference: {fileID: 6486150559739573948, guid: 0e1f32d9ad925144daf898ad5aeeb133, type: 3}
+    - target: {fileID: 1840904383920436939, guid: c8f9a93e1d89e75459512f9db99d3e05, type: 3}
       propertyPath: possibleOptions.Array.size
       value: 8
       objectReference: {fileID: 0}
@@ -5553,39 +5557,39 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1840904383920436939, guid: c8f9a93e1d89e75459512f9db99d3e05, type: 3}
       propertyPath: possibleOptions.Array.size
-      value: 9
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 1840904383920436939, guid: c8f9a93e1d89e75459512f9db99d3e05, type: 3}
       propertyPath: possibleOptions.Array.data[0]
-      value: "j\u0119zyk polski"
-      objectReference: {fileID: 0}
-    - target: {fileID: 1840904383920436939, guid: c8f9a93e1d89e75459512f9db99d3e05, type: 3}
-      propertyPath: possibleOptions.Array.data[1]
-      value: "j\u0119zyk angielski"
-      objectReference: {fileID: 0}
-    - target: {fileID: 1840904383920436939, guid: c8f9a93e1d89e75459512f9db99d3e05, type: 3}
-      propertyPath: possibleOptions.Array.data[2]
-      value: "j\u0119zyk niemiecki"
-      objectReference: {fileID: 0}
-    - target: {fileID: 1840904383920436939, guid: c8f9a93e1d89e75459512f9db99d3e05, type: 3}
-      propertyPath: possibleOptions.Array.data[3]
       value: matematyka
       objectReference: {fileID: 0}
     - target: {fileID: 1840904383920436939, guid: c8f9a93e1d89e75459512f9db99d3e05, type: 3}
-      propertyPath: possibleOptions.Array.data[4]
+      propertyPath: possibleOptions.Array.data[1]
       value: fizyka
       objectReference: {fileID: 0}
     - target: {fileID: 1840904383920436939, guid: c8f9a93e1d89e75459512f9db99d3e05, type: 3}
-      propertyPath: possibleOptions.Array.data[5]
+      propertyPath: possibleOptions.Array.data[2]
       value: chemia
       objectReference: {fileID: 0}
     - target: {fileID: 1840904383920436939, guid: c8f9a93e1d89e75459512f9db99d3e05, type: 3}
-      propertyPath: possibleOptions.Array.data[6]
+      propertyPath: possibleOptions.Array.data[3]
       value: biologia
       objectReference: {fileID: 0}
     - target: {fileID: 1840904383920436939, guid: c8f9a93e1d89e75459512f9db99d3e05, type: 3}
-      propertyPath: possibleOptions.Array.data[7]
+      propertyPath: possibleOptions.Array.data[4]
       value: geografia
+      objectReference: {fileID: 0}
+    - target: {fileID: 1840904383920436939, guid: c8f9a93e1d89e75459512f9db99d3e05, type: 3}
+      propertyPath: possibleOptions.Array.data[5]
+      value: edukacja seksualna
+      objectReference: {fileID: 0}
+    - target: {fileID: 1840904383920436939, guid: c8f9a93e1d89e75459512f9db99d3e05, type: 3}
+      propertyPath: possibleOptions.Array.data[6]
+      value: programowanie
+      objectReference: {fileID: 0}
+    - target: {fileID: 1840904383920436939, guid: c8f9a93e1d89e75459512f9db99d3e05, type: 3}
+      propertyPath: possibleOptions.Array.data[7]
+      value: 
       objectReference: {fileID: 0}
     - target: {fileID: 1840904383920436939, guid: c8f9a93e1d89e75459512f9db99d3e05, type: 3}
       propertyPath: possibleOptions.Array.data[8]
@@ -9526,6 +9530,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 83071283}
     m_Modifications:
+    - target: {fileID: 1840904383920436939, guid: c8f9a93e1d89e75459512f9db99d3e05, type: 3}
+      propertyPath: optionPrefab
+      value: 
+      objectReference: {fileID: 8748045316875281835, guid: 3d95722de49de0a4a99f4d2c0b1d49f3, type: 3}
     - target: {fileID: 1840904383920436939, guid: c8f9a93e1d89e75459512f9db99d3e05, type: 3}
       propertyPath: possibleOptions.Array.size
       value: 9
