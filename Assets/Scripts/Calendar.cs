@@ -1,28 +1,26 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
 using UnityEngine.UI;
 using TMPro;
-using System.Data;
 /// TO DO: 1.Add button to come back to current month
 
 public class Calendar : MonoBehaviour
 {
-    [SerializeField] public GameObject AddingMeetingsPanel;
-    [SerializeField] public TMP_Text DataAtThePanel; 
-    [SerializeField] public Button AddingMeetingsButton; 
-    [SerializeField] public Button DeleteMeetingsButton; 
-    [SerializeField] public TMP_InputField HourOfMeetingText;
-    [SerializeField] public TMP_Text WholeAboutMeetingText;
+    [SerializeField] private GameObject AddingMeetingsPanel;
+    [SerializeField] private TMP_Text DataAtThePanel; 
+    [SerializeField] private Button AddingMeetingsButton; 
+    [SerializeField] private Button DeleteMeetingsButton; 
+    [SerializeField] private TMP_InputField HourOfMeetingText;
+    [SerializeField] private TMP_Text WholeAboutMeetingText;
 
     /// <summary>
     /// All the days in the month. After we make our first calendar we store these days in this list so we do not have to recreate them every time.
     /// </summary>
-    private List<Day> days = new List<Day>();
+    private readonly List<Day> days = new();
 
 
-    private List<Meeting> meets = new List<Meeting>();
+    private readonly List<Meeting> meets = new();
 
     /// <summary>
     /// Setup in editor since there will always be six weeks. 
