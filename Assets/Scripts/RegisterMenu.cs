@@ -18,10 +18,6 @@ public class RegisterMenu : MonoBehaviour {
     private TMP_InputField lastNameInput;
     [SerializeField]
     private TMP_Dropdown sexDropdown;
-    /*[SerializeField]
-    private TMP_InputField callNumberInput;
-    [SerializeField]
-    private TMP_InputField emailInput;*/
     [SerializeField]
     private TMP_Text errorMsg;
     [SerializeField]
@@ -45,8 +41,6 @@ public class RegisterMenu : MonoBehaviour {
         firstNameInput.text = "";
         lastNameInput.text = "";
         sexDropdown.value = 0;
-        //callNumberInput.text = "";
-        //emailInput.text = "";
         errorMsg.text = "";
         scrollbar.value = 1.0f;
     }
@@ -77,18 +71,14 @@ public class RegisterMenu : MonoBehaviour {
             errorMsg.text = "Nazwisko nie mo¿e byæ puste.";
             return;
         }
-        /*if(string.IsNullOrEmpty(callNumberInput.text)) {
-            errorMsg.text = "Nr telefonu nie mo¿e byæ pusty.";
-            return;
-        }
-        if(string.IsNullOrEmpty(emailInput.text)) {
-            errorMsg.text = "Adres e-mail nie mo¿e byæ pusty.";
-            return;
-        }*/
 
         bool isMale = sexDropdown.options[sexDropdown.value].text.Equals("Mê¿czyzna");
         try {
             database.CreateAccount(loginInput.text,passwordInput.text,firstNameInput.text,lastNameInput.text,isMale);
+        }
+        catch(DatabaseManagement.LoginAlreadyUsedException) {
+            errorMsg.text = "Login jest zajêty.";
+            return;
         }
         catch(Exception) {
             errorMsg.text = "Wyst¹pi³ b³¹d.";
