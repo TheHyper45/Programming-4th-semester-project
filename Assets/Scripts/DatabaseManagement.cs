@@ -1,11 +1,11 @@
 using System;
 using System.IO;
 using UnityEngine;
-using SQLite4Unity3d;
+using Mono.Data.Sqlite;
 using UnityEngine.Networking;
 
 public class DatabaseManagement : MonoBehaviour {
-    [Table("Osoby")]
+    /*[Table("Osoby")]
     public class PearsonEntity {
         [Column("Id"), PrimaryKey, AutoIncrement]
         public int Id { get; set; }
@@ -27,7 +27,7 @@ public class DatabaseManagement : MonoBehaviour {
         public int Grade { get; set; }
         [Column("IdOsoby"), NotNull, ForeignKey("Osoby","Id")]
         public int PersonId { get; set; }
-    }
+    }*/
 
     public class NonexistentAccountException : Exception {
         public NonexistentAccountException() : base("Konto nie istnieje.") { }
@@ -64,37 +64,37 @@ public class DatabaseManagement : MonoBehaviour {
             var bytes = (Application.platform == RuntimePlatform.Android) ? GetStreamingAssetBytesForAndroid(streamingPath) : File.ReadAllBytes(streamingPath);
             File.WriteAllBytes(FilePath,bytes);
         }
-        using var conn = new SQLiteConnection(FilePath,true);
-        conn.CreateTable<PearsonEntity>();
-        conn.CreateTable<MeetingEntity>();
+        using var conn = new SqliteConnection($"Data Source={FilePath};Version=3;New=False;");
+        //conn.CreateTable<PearsonEntity>();
+        //conn.CreateTable<MeetingEntity>();
     }
 
     private string currentLogin = "";
     public bool CurrentSex { get; private set; } = false;
 
     public void Connect(string login,string password) {
-        using var conn = new SQLiteConnection(FilePath,true);
+        /*using var conn = new SQLiteConnection(FilePath,true);
         var entities = conn.Query<PearsonEntity>($"select * from Osoby where Login = \"{login}\";");
         if(entities.Count == 1) {
             currentLogin = login;
             CurrentSex = entities[0].Sex;
             return;
         }
-        throw new NonexistentAccountException();
+        throw new NonexistentAccountException();*/
     }
 
     public void CreateAccount(string login,string password,string firstName,string lastName,bool isMale) {
-        using var conn = new SQLiteConnection(FilePath,true);
+        /*using var conn = new SQLiteConnection(FilePath,true);
         try {
             conn.Execute($"insert into Osoby (Login,Has³o,Imiê,Nazwisko,P³eæ) values (\"{login}\",\"{password}\",\"{firstName}\",\"{lastName}\",{(isMale ? 1 : 0)});");
         }
         catch(SQLiteException error) {
             throw (error.Message.Equals("Constraint") ? throw new LoginAlreadyUsedException() : error);
-        }
+        }*/
     }
 
     public void DeleteCurrentAccount() {
-        using var conn = new SQLiteConnection(FilePath,true);
-        conn.Execute($"delete from Osoby where Login = \"{currentLogin}\";");
+        //using var conn = new SQLiteConnection(FilePath,true);
+        //conn.Execute($"delete from Osoby where Login = \"{currentLogin}\";");
     }
 }
