@@ -31,7 +31,7 @@ public class Calendar : MonoBehaviour {
     public TMP_Text MonthAndYear;
 
     private readonly List<Day> days = new();
-    private readonly List<Meeting> meets = new();
+    public List<Meeting> meets = new();
     private DateTime currDate = DateTime.Now;
     private int dayToCalculation = 0;
 
@@ -217,9 +217,10 @@ public class Calendar : MonoBehaviour {
             AddingMeetingsPanel.SetActive(false);
             meets.Add(meeting);
             UpdateCalendar(currDate.Year,currDate.Month);
+            
         }
         else {
-            errorText.text = "Musisz podaæ godzinê.";
+            errorText.text = "Musisz podaï¿½ godzinï¿½.";
             errorTextClearCooldown = 3.0f;
         }
     }
@@ -227,7 +228,7 @@ public class Calendar : MonoBehaviour {
     public void ShowMeeting() {
         int startDay = GetMonthStartDay(currDate.Year,currDate.Month);
         if(meets.Count == 0) {
-            WholeAboutMeetingText.text = "Brak spotkañ";
+            WholeAboutMeetingText.text = "Brak spotkaï¿½";
         }
         else {
             foreach(var meeting in meets) {
@@ -240,7 +241,7 @@ public class Calendar : MonoBehaviour {
                     }
                 }
                 else {
-                    WholeAboutMeetingText.text = "Brak spotkañ";
+                    WholeAboutMeetingText.text = "Brak spotkaï¿½";
                 }
             }
         }
