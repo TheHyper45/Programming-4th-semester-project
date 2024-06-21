@@ -4,7 +4,11 @@ using System;
 using UnityEngine.UI;
 using TMPro;
 /// TO DO: 1.Add button to come back to current month
-
+/// To Do layoutgroup zeby sie nie rozjezdzal
+/// To Do na panelu ze spotkaniami zeby byly dobre datya nie tylko ostatni klikniety dzien
+/// zabezpieczenie by nie mozna bylo wpisac wiecej niz godziny 24 albo 00 jak kto woli
+/// nie wiecej niz jedno spotkanie 
+/// dodanie info z ID Osoby
 public class Calendar : MonoBehaviour {
     [SerializeField]
     private GameObject AddingMeetingsPanel;
@@ -220,7 +224,7 @@ public class Calendar : MonoBehaviour {
             
         }
         else {
-            errorText.text = "Musisz poda� godzin�.";
+            errorText.text = "Musisz podac godzine.";
             errorTextClearCooldown = 3.0f;
         }
     }
@@ -228,20 +232,20 @@ public class Calendar : MonoBehaviour {
     public void ShowMeeting() {
         int startDay = GetMonthStartDay(currDate.Year,currDate.Month);
         if(meets.Count == 0) {
-            WholeAboutMeetingText.text = "Brak spotka�";
+            WholeAboutMeetingText.text = "Brak spotkan";
         }
         else {
             foreach(var meeting in meets) {
                 if(meeting.Year == currDate.Year && meeting.Month == currDate.Month && meeting.Day == dayToCalculation - startDay) {
                     if(meeting.Month <= 9) {
-                        WholeAboutMeetingText.text = $"{meeting.Hour}:00 {meeting.Day}.0{meeting.Month}.{meeting.Year}";
+                        WholeAboutMeetingText.text = $"{meeting.Hour}:00 {meeting.Day+1}.0{meeting.Month}.{meeting.Year}";
                     }
                     else {
-                        WholeAboutMeetingText.text = $"{meeting.Hour}:00 {meeting.Day}.{meeting.Month}.{meeting.Year}";
+                        WholeAboutMeetingText.text = $"{meeting.Hour}:00 {meeting.Day+1}.{meeting.Month}.{meeting.Year}";
                     }
                 }
                 else {
-                    WholeAboutMeetingText.text = "Brak spotka�";
+                    WholeAboutMeetingText.text = "Brak spotkan";
                 }
             }
         }
