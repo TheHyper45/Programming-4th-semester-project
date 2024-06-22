@@ -44,14 +44,10 @@ public class LoginMenu : MonoBehaviour {
             return;
         }
         try {
-            database.Connect(loginInput.text,passwordInput.text);
+            database.Model.Login(loginInput.text,passwordInput.text);
         }
-        catch(DatabaseManagement.NonexistentAccountException) {
-            errorMsg.text = "Niepoprawny login lub has³o.";
-            return;
-        }
-        catch(Exception) {
-            errorMsg.text = "Wyst¹pi³ b³¹d.";
+        catch(Exception error) {
+            errorMsg.text = error.Message;
             return;
         }
         stateManagement.SwitchToMainMenu();

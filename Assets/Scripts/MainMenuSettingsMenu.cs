@@ -36,7 +36,8 @@ public class MainMenuSettingsMenu : MonoBehaviour {
     private void OnEnable() {
         accountDeleteButton.gameObject.SetActive(true);
         accountDeletePrompt.SetActive(false);
-        accountDeletePromptText.text = (databaseManagement.CurrentSex ? "Jesteœ pewien usuniêcia konta?" : "Jesteœ pewna usuniêcia konta?");
+        var sex = databaseManagement.Model.GetCurrentAccountSex();
+        accountDeletePromptText.text = $"Jesteœ {(sex.Equals("Mê¿czyzna") ? "pewien" : "pewna")} usuniêcia konta?";
     }
 
     private void OnLogoutButtonClick() {
@@ -44,7 +45,7 @@ public class MainMenuSettingsMenu : MonoBehaviour {
     }
 
     private void OnDeleteAccountButtonClick() {
-        databaseManagement.DeleteCurrentAccount();
+        databaseManagement.Model.DeleteCurrentAccount();
         menu.Logout();
     }
 }
