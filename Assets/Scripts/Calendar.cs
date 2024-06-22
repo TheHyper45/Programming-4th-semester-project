@@ -5,9 +5,6 @@ using UnityEngine.UI;
 using TMPro;
 /// TO DO: 1.Add button to come back to current month
 /// To Do layoutgroup zeby sie nie rozjezdzal
-/// To Do na panelu ze spotkaniami zeby byly dobre datya nie tylko ostatni klikniety dzien
-/// zabezpieczenie by nie mozna bylo wpisac wiecej niz godziny 24 albo 00 jak kto woli
-/// nie wiecej niz jedno spotkanie 
 /// dodanie info z ID Osoby
 public class Calendar : MonoBehaviour {
     [SerializeField]
@@ -70,20 +67,18 @@ public class Calendar : MonoBehaviour {
     }
 
     public class Meeting {
-        public int Year;
-        public int Month;
-        public int Day;
-        public int Hour;
-        public int PersonID;
-        public bool Meet;
+        public int Year { get; private set; }
+        public int Month { get; private set; }
+        public int Day { get; private set; }
+        public int Hour { get; private set; }
+        public int PersonID { get; private set; }
 
-        public Meeting(int year,int month,int day,int hour,int personID,bool meet) {
+        public Meeting(int year,int month,int day,int hour,int personID) {
             Year = year;
             Month = month;
             Day = day;
             Hour = hour;
             PersonID = personID;
-            Meet = meet;
         }
     }
 
@@ -213,43 +208,48 @@ public class Calendar : MonoBehaviour {
             days[(DateTime.Now.Day - 1) + startDay].UpdateColor(ColorUtility.HexToColor("8C52FF"));
         }
     }
+
     private void AddingMeetings() {
         int startDay = GetMonthStartDay(currDate.Year,currDate.Month);
         string temp = HourOfMeetingText.text;
         if(int.TryParse(temp,out int hour)) {
-            Meeting meeting;
-            meeting = new Meeting(currDate.Year,currDate.Month,dayToCalculation - startDay,hour,1,true);
+            if(hour < 0 || hour >= 24) {
+                errorText.text = "Spotkanie mo¿e byæ umówione w godzinach 0-23.";
+                errorTextClearCooldown = 3.0f;
+                return;
+            }
+            foreach(var meeting in meets) {
+                if(meeting.Year == currDate.Year && meeting.Month == currDate.Month && meeting.Day == dayToCalculation - startDay) {
+                    errorText.text = "Ju¿ istnieje w tym dniu spotkanie.";
+                    errorTextClearCooldown = 3.0f;
+                    return;
+                }
+            }
             AddingMeetingsPanel.SetActive(false);
-            meets.Add(meeting);
+            meets.Add(new(currDate.Year,currDate.Month,dayToCalculation - startDay,hour,1));
             UpdateCalendar(currDate.Year,currDate.Month);
             
         }
         else {
-            errorText.text = "Musisz podac godzine.";
+            errorText.text = "Musisz podaæ godzinê.";
             errorTextClearCooldown = 3.0f;
         }
     }
 
     public void ShowMeeting() {
         int startDay = GetMonthStartDay(currDate.Year,currDate.Month);
-        if(meets.Count == 0) {
-            WholeAboutMeetingText.text = "Brak spotkan";
-        }
-        else {
-            foreach(var meeting in meets) {
-                if(meeting.Year == currDate.Year && meeting.Month == currDate.Month && meeting.Day == dayToCalculation - startDay) {
-                    if(meeting.Month <= 9) {
-                        WholeAboutMeetingText.text = $"{meeting.Hour}:00 {meeting.Day+1}.0{meeting.Month}.{meeting.Year}";
-                    }
-                    else {
-                        WholeAboutMeetingText.text = $"{meeting.Hour}:00 {meeting.Day+1}.{meeting.Month}.{meeting.Year}";
-                    }
+        foreach(var meeting in meets) {
+            if(meeting.Year == currDate.Year && meeting.Month == currDate.Month && meeting.Day == dayToCalculation - startDay) {
+                if(meeting.Month <= 9) {
+                    WholeAboutMeetingText.text = $"{meeting.Hour}:00 {meeting.Day + 1}.0{meeting.Month}.{meeting.Year}";
                 }
                 else {
-                    WholeAboutMeetingText.text = "Brak spotkan";
+                    WholeAboutMeetingText.text = $"{meeting.Hour}:00 {meeting.Day + 1}.{meeting.Month}.{meeting.Year}";
                 }
+                return;
             }
         }
+        WholeAboutMeetingText.text = "Brak spotkañ";
     }
 
     private void DeleteMeetings() {
@@ -274,12 +274,12 @@ public class Calendar : MonoBehaviour {
         {
             if (hex.StartsWith("#"))
             {
-                hex = hex.Substring(1);
+                hex = hex.Substring(1,hex.Length - 1);
             }
 
             if (hex.Length != 6)
             {
-                throw new System.ArgumentException("Invalid hex color length. Expected 6 characters.");
+                throw new ArgumentException("Invalid hex color length. Expected 6 characters.");
             }
 
             byte r = byte.Parse(hex.Substring(0, 2), System.Globalization.NumberStyles.HexNumber);
