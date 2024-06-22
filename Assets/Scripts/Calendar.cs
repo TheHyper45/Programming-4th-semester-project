@@ -59,7 +59,8 @@ public class Calendar : MonoBehaviour {
 
         public void UpdateDay(int newDayNum) {
             DayNum = newDayNum;
-            if(DayColor == Color.white || DayColor == Color.green) {
+            Color targetColor = ColorUtility.HexToColor("8C52FF");
+            if (DayColor == Color.white || DayColor == targetColor) {
                 Obj.GetComponentInChildren<TMP_Text>().text = (DayNum + 1).ToString();
             }
             else {
@@ -209,7 +210,7 @@ public class Calendar : MonoBehaviour {
         }
 
         if(DateTime.Now.Year == year && DateTime.Now.Month == month) {
-            days[(DateTime.Now.Day - 1) + startDay].UpdateColor(Color.green);
+            days[(DateTime.Now.Day - 1) + startDay].UpdateColor(ColorUtility.HexToColor("8C52FF"));
         }
     }
     private void AddingMeetings() {
@@ -265,5 +266,27 @@ public class Calendar : MonoBehaviour {
 
     private int GetMonthStartDay(int year,int month) {
         return (int)(new DateTime(year,month,1)).DayOfWeek;
+    }
+
+    public static class ColorUtility
+    {
+        public static Color HexToColor(string hex)
+        {
+            if (hex.StartsWith("#"))
+            {
+                hex = hex.Substring(1);
+            }
+
+            if (hex.Length != 6)
+            {
+                throw new System.ArgumentException("Invalid hex color length. Expected 6 characters.");
+            }
+
+            byte r = byte.Parse(hex.Substring(0, 2), System.Globalization.NumberStyles.HexNumber);
+            byte g = byte.Parse(hex.Substring(2, 2), System.Globalization.NumberStyles.HexNumber);
+            byte b = byte.Parse(hex.Substring(4, 2), System.Globalization.NumberStyles.HexNumber);
+
+            return new Color32(r, g, b, 255);
+        }
     }
 }
