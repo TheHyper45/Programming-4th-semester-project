@@ -97,7 +97,7 @@ public class DatabaseModel {
             DELETE FROM Osoby_Przedmioty WHERE Id_o = {accountID};
             DELETE FROM Zbanowane_Osoby WHERE Id_1 = {accountID} OR Id_2 = {accountID};
             DELETE FROM Osoby_Spotkania WHERE Id_o = {accountID};
-            DELETE FROM Spotkania WHERE Id in (SELECT Id_s FROM Osoby_Spotkania WHERE Id_o = {accountID});
+            DELETE FROM Spotkania WHERE Id not in (SELECT Id_s FROM Osoby_Spotkania);
             DELETE FROM Osoby WHERE Id = {accountID};
             COMMIT TRANSACTION;
         ";

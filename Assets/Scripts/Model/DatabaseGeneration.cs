@@ -1,3 +1,5 @@
+using System;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using Mono.Data.Sqlite;
@@ -12,9 +14,27 @@ public class DatabaseGeneration {
     public static readonly string[] SportLevels =
         {"brak","pocz¹tkuj¹cy","œredniozaawansowany","zaawansowany"};
     public static readonly string[] Subjects =
-        {"matematyka","fizyka","chemia","biologia","geografia","edukacja seksualna","programowanie"};
+        {"matematyka","fizyka","chemia","biologia","geografia","edukacja seksualna","programowanie","polityka"};
     public static readonly string[] SubjectLevels =
         {"brak","pocz¹tkuj¹cy","œredniozaawansowany","zaawansowany"};
+
+    private class UserEntity {
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string Login { get; set; }
+        public string Password { get; set; }
+        public string Sex { get; set; }
+        public string CallNumber { get; set; }
+    };
+
+    private static readonly string[] FirstNamesMale =
+        {"Dawid","Mateusz","Dominik","Adam","Pawe³","Andrzej","Kacper","Bartek","Wojtek","Micha³","Waldemar"};
+    private static readonly string[] LastNamesMale =
+        {"Nowak","Kowalski","Wiœniewski","Wójcik","Duda","Kowalczyk","Szymañski","WoŸniak","Kamiñski","Krawczyk"};
+    private static readonly string[] FirstNamesFemale =
+        {"Asia","Agnieszka","Agata","Karolina","Barbara","Laura","Aleksandra","Patrycja","Edyta","Basia","Monika"};
+    private static readonly string[] LastNamesFemale =
+        {"Nowak","Kowalska","Wiœniewska","Kaczmarek","Duda","Kowalczyk","Szymañska","WoŸniak","Kamiñska","Mazur"};
 
     public static void Init(string path) {
         if(!File.Exists(path)) {
@@ -132,6 +152,49 @@ public class DatabaseGeneration {
             }
             cmd.CommandText = builder.ToString();
             cmd.ExecuteNonQuery();
+
+            Random random = new();
+            builder.Clear();
+            foreach(var firstName in FirstNamesMale) {
+                foreach(var lastName in LastNamesMale) {
+                    builder.Append($@"INSERT INTO Osoby(Imiê,Nazwisko,Login,Has³o,P³eæ,Telefon) VALUES (
+                        '{firstName}',
+                        '{lastName}',
+                        '{firstName[0]}{lastName}@example.com',
+                        '{firstName}{lastName}',
+                        'Mê¿czyzna',
+                        '{GenerateCallNumber(random)}'
+                    );");
+                }
+            }
+            cmd.CommandText = builder.ToString();
+            cmd.ExecuteNonQuery();
+
+            builder.Clear();
+            foreach(var firstName in FirstNamesFemale) {
+                foreach(var lastName in LastNamesFemale) {
+                    builder.Append($@"INSERT INTO Osoby(Imiê,Nazwisko,Login,Has³o,P³eæ,Telefon) VALUES (
+                        '{firstName}',
+                        '{lastName}',
+                        '{firstName[0]}{lastName}@example.com',
+                        '{firstName}{lastName}',
+                        'Kobieta',
+                        '{GenerateCallNumber(random)}'
+                    );");
+                }
+            }
+            cmd.CommandText = builder.ToString();
+            cmd.ExecuteNonQuery();
         }
+    }
+
+    private static readonly string Digits = "0123456789";
+
+    private static string GenerateCallNumber(Random random) {
+        StringBuilder builder = new();
+        for(int i = 0;i < 12;i += 1) {
+            builder.Append(Digits[random.Next(0,9)]);
+        }
+        return builder.ToString();
     }
 }
