@@ -492,7 +492,7 @@ MonoBehaviour:
     m_Top: 0
     m_Bottom: 0
   m_ChildAlignment: 4
-  m_Spacing: 0
+  m_Spacing: 10
   m_ChildForceExpandWidth: 0
   m_ChildForceExpandHeight: 0
   m_ChildControlWidth: 0
@@ -526,6 +526,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 73c7013f6058e494aa99655be2b5d417, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  databaseManagement: {fileID: 0}
   optionPrefab: {fileID: 6486150559739573948, guid: 7e932b6bfa8207043ba9aad46d444d31, type: 3}
   allOptionsContainer: {fileID: 6968500396812811804}
   addOptionButton: {fileID: 7840810473187827584}
@@ -1171,7 +1172,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 512, y: 0}
   m_SizeDelta: {x: 1024, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &3177708397446947497
@@ -1475,7 +1476,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6570242781177063377, guid: c31ef60e75553514f8e19300c5c26da6, type: 3}
       propertyPath: m_SizeDelta.x
-      value: -682.6667
+      value: -800
       objectReference: {fileID: 0}
     - target: {fileID: 6570242781177063377, guid: c31ef60e75553514f8e19300c5c26da6, type: 3}
       propertyPath: m_SizeDelta.y
@@ -1511,7 +1512,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6570242781177063377, guid: c31ef60e75553514f8e19300c5c26da6, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -341.33334
+      value: -340
       objectReference: {fileID: 0}
     - target: {fileID: 6570242781177063377, guid: c31ef60e75553514f8e19300c5c26da6, type: 3}
       propertyPath: m_AnchoredPosition.y
@@ -1535,11 +1536,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9143550161303062940, guid: c31ef60e75553514f8e19300c5c26da6, type: 3}
       propertyPath: m_fontSize
-      value: 58
+      value: 46
       objectReference: {fileID: 0}
     - target: {fileID: 9143550161303062940, guid: c31ef60e75553514f8e19300c5c26da6, type: 3}
       propertyPath: m_fontSizeBase
-      value: 58
+      value: 46
       objectReference: {fileID: 0}
     - target: {fileID: 9143550161303062940, guid: c31ef60e75553514f8e19300c5c26da6, type: 3}
       propertyPath: m_enableAutoSizing
@@ -1604,7 +1605,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6570242781177063377, guid: c31ef60e75553514f8e19300c5c26da6, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 512
+      value: 400
       objectReference: {fileID: 0}
     - target: {fileID: 6570242781177063377, guid: c31ef60e75553514f8e19300c5c26da6, type: 3}
       propertyPath: m_SizeDelta.y
@@ -1842,7 +1843,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6570242781177063377, guid: c31ef60e75553514f8e19300c5c26da6, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 512
+      value: 400
       objectReference: {fileID: 0}
     - target: {fileID: 6570242781177063377, guid: c31ef60e75553514f8e19300c5c26da6, type: 3}
       propertyPath: m_SizeDelta.y
