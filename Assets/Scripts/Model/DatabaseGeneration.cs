@@ -4,15 +4,15 @@ using Mono.Data.Sqlite;
 
 public class DatabaseGeneration {
     public static readonly string[] Languages =
-        {"polski","angielski","niemiecki","francuski","hiszpañski","portugalski","w³oski","rosyjski","ukraiñski","czeski"};
+        {"Polski","Angielski","Niemiecki","Francuski","Hiszpañski","Portugalski","W³oski","Rosyjski","Ukraiñski","Czeski"};
     public static readonly string[] LanguageLevels =
         {"brak","A1","A2","B1","B2","C1","C2"};
     public static readonly string[] Sports =
-        {"pi³ka no¿na","pi³ka rêczna","siatkówka","koszykówka","hokej","tenis","tenis sto³owy","golf","bieganie"};
+        {"Pi³ka no¿na","Pi³ka rêczna","Siatkówka","Koszykówka","Hokej","Tenis","Tenis sto³owy","Golf","Bieganie"};
     public static readonly string[] SportLevels =
         {"brak","pocz¹tkuj¹cy","œredniozaawansowany","zaawansowany"};
     public static readonly string[] Subjects =
-        {"matematyka","fizyka","chemia","biologia","geografia","edukacja seksualna","programowanie"};
+        {"Matematyka","Fizyka","Chemia","Biologia","Geografia","Edukacja seksualna","Programowanie"};
     public static readonly string[] SubjectLevels =
         {"brak","pocz¹tkuj¹cy","œredniozaawansowany","zaawansowany"};
 
