@@ -28,11 +28,14 @@ public class MainMenuTinderMenu : MonoBehaviour {
     private List<DatabaseModel.User> foundMatchingUsers;
     private int currentMatchIndex;
 
+    private void Awake() {
+        goButton.onClick.AddListener(OnGoButtonClick);
+        declineMatchButton.onClick.AddListener(OnDeclineButtonClick);
+    }
+
     private void OnEnable() {
         titleScreen.SetActive(true);
         matchingUserScreen.SetActive(false);
-        goButton.onClick.AddListener(OnGoButtonClick);
-        declineMatchButton.onClick.AddListener(OnDeclineButtonClick);
     }
 
     private void SetupUserMatchingScreen() {
