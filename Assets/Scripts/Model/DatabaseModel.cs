@@ -17,19 +17,27 @@ public class DatabaseModel {
     }
 
     public class User {
+        public int Id { get; private set; }
         public string FirstName { get; private set; }
         public string LastName { get; private set; }
         public string Login { get; private set; }
         public string Password { get; private set; }
         public string Sex { get; private set; }
         public string CallNumber { get; private set; }
-        public User(string firstName,string lastName,string login,string password,string sex,string callNumber) {
+        public List<Entity> Languages { get; private set; }
+        public List<Entity> Sports { get; private set; }
+        public List<Entity> Subjects { get; private set; }
+        public User(int id,string firstName,string lastName,string login,string password,string sex,string callNumber,List<Entity> languages,List<Entity> sports,List<Entity> subjects) {
+            Id = id;
             FirstName = firstName;
             LastName = lastName;
             Login = login;
             Password = password;
             Sex = sex;
             CallNumber = callNumber;
+            Languages = languages;
+            Sports = sports;
+            Subjects = subjects;
         }
 
     };
@@ -123,30 +131,29 @@ public class DatabaseModel {
         Logout();
     }
 
-    private List<Entity> GetEntitiesForCurrentAccount(string entityTableName,string userTableName,string entityTableIdColumnName) {
-        Trace.Assert(CurrentLogin != null);
-        var accountID = GetCurrentAccountID();
-
+    private List<Entity> GetEntities(int accountID,string entityTableName,string userTableName,string entityTableIdColumnName) {
+        List<Entity> entities = new();
         using SqliteConnection conn = new($"Data Source={path};Version=3;New=False;");
         conn.Open();
 
         using var cmd = conn.CreateCommand();
         cmd.CommandText = $"SELECT {entityTableIdColumnName},Priorytet FROM {userTableName} WHERE Id_o = {accountID};";
         using var reader = cmd.ExecuteReader();
-        if(reader.HasRows) {
-            List<Entity> entities = new();
-            while(reader.Read()) {
-                //@TODO: This is confusing.
-                using var cmd2 = conn.CreateCommand();
-                cmd2.CommandText = $"SELECT Nazwa,Stopieñ FROM {entityTableName} WHERE Id = {reader.GetInt32(0)};";
-                using var reader2 = cmd2.ExecuteReader();
-                Trace.Assert(reader2.HasRows);
-                reader2.Read();
-                entities.Add(new(reader2.GetString(0),reader2.GetString(1),reader.GetInt32(1)));
-            }
-            return entities;
+        while(reader.HasRows && reader.Read()) {
+            //@TODO: This is confusing.
+            using var cmd2 = conn.CreateCommand();
+            cmd2.CommandText = $"SELECT Nazwa,Stopieñ FROM {entityTableName} WHERE Id = {reader.GetInt32(0)};";
+            using var reader2 = cmd2.ExecuteReader();
+            Trace.Assert(reader2.HasRows);
+            reader2.Read();
+            entities.Add(new(reader2.GetString(0),reader2.GetString(1),reader.GetInt32(1)));
         }
-        return new();
+        return entities;
+    }
+
+    private List<Entity> GetEntitiesForCurrentAccount(string entityTableName,string userTableName,string entityTableIdColumnName) {
+        Trace.Assert(CurrentLogin != null);
+        return GetEntities(GetCurrentAccountID(),entityTableName,userTableName,entityTableIdColumnName);
     }
 
     public List<Entity> GetLanguagesForCurrentAccount() {
@@ -199,14 +206,71 @@ public class DatabaseModel {
 
     public List<User> GetMatchingUsersForCurrentAccount() {
         Trace.Assert(CurrentLogin != null);
-        var accountID = GetCurrentAccountID();
+        var currentAccountID = GetCurrentAccountID();
+        var currentLanguages = GetLanguagesForCurrentAccount();
+        var currentSports = GetSportsForCurrentAccount();
+        var currentSubjects = GetSubjectsForCurrentAccount();
 
+        Random random = new();
+        List<User> users = new();
+        Dictionary<User,int> userEvaluations = new();
         using SqliteConnection conn = new($"Data Source={path};Version=3;New=False;");
         conn.Open();
 
         using var cmd = conn.CreateCommand();
-        cmd.CommandText = $"SELECT Imiê,Nazwisko,Login,Has³o,P³eæ,Telefon FROM Osoby WHERE Id <> {accountID} ORDER BY 0;";
+        cmd.CommandText = $"SELECT Id,Imiê,Nazwisko,Login,Has³o,P³eæ,Telefon FROM Osoby WHERE Id <> {currentAccountID};";
+        using var reader = cmd.ExecuteReader();
+        while(reader.HasRows && reader.Read()) {
+            User user = new(
+                reader.GetInt32(0),
+                reader.GetString(1),
+                reader.GetString(2),
+                reader.GetString(3),
+                reader.GetString(4),
+                reader.GetString(5),
+                reader.GetString(6),
+                GetEntities(reader.GetInt32(0),"Jêzyki","Osoby_Jêzyki","Id_j"),
+                GetEntities(reader.GetInt32(0),"Sport","Osoby_Sport","Id_s"),
+                GetEntities(reader.GetInt32(0),"Przedmioty","Osoby_Przedmioty","Id_p")
+            );
 
-        return new();
+            int evaluation = 0;
+            foreach(var currentLanguage in currentLanguages) {
+                foreach(var userLanguage in user.Languages) {
+                    if(userLanguage.Name.Equals(currentLanguage.Name)) {
+                        evaluation += currentLanguage.Priority * DatabaseGeneration.GetLanguageLevelWeight(userLanguage.Level) + random.Next(-5,6);
+                    }
+                }
+            }
+            foreach(var currentSport in currentSports) {
+                foreach(var userSport in user.Sports) {
+                    if(userSport.Name.Equals(currentSport.Name)) {
+                        evaluation += currentSport.Priority * DatabaseGeneration.GetSportLevelWeight(userSport.Level) + random.Next(-5,6);
+                    }
+                }
+            }
+            foreach(var currentSubject in currentSubjects) {
+                foreach(var userSubject in user.Subjects) {
+                    if(userSubject.Name.Equals(currentSubject.Name)) {
+                        evaluation += currentSubject.Priority * DatabaseGeneration.GetSubjectLevelWeight(userSubject.Level) + random.Next(-5,6);
+                    }
+                }
+            }
+            userEvaluations.Add(user,evaluation);
+            users.Add(user);
+        }
+        users.Sort((User a,User b) => {
+            if(a == null && b != null) {
+                return 1;
+            }
+            if(a != null && b == null) {
+                return -1;
+            }
+            return (a == b) ? 0 : (userEvaluations[a] >= userEvaluations[b] ? -1 : 1);
+        });
+        if(users.Count > 100) {
+            users.RemoveRange(100,users.Count - 100);
+        }
+        return users;
     }
 }

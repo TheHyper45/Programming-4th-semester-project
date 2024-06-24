@@ -28,6 +28,28 @@ public class DatabaseGeneration {
     private static readonly string[] LastNamesFemale =
         {"Nowak","Kowalska","Wiœniewska","Kaczmarek","Duda","Kowalczyk","Szymañska","WoŸniak","Kamiñska","Mazur"};
 
+    private static int GetEntityLevelWeight(string[] levels,string level) {
+        for(int i = 0;i < levels.Length;i += 1) {
+            if(levels[i].Equals(level)) {
+                return i;
+            }
+        }
+        Trace.Assert(false);
+        return 0;
+    }
+
+    public static int GetLanguageLevelWeight(string level) {
+        return GetEntityLevelWeight(LanguageLevels,level);
+    }
+
+    public static int GetSportLevelWeight(string level) {
+        return GetEntityLevelWeight(SportLevels,level);
+    }
+
+    public static int GetSubjectLevelWeight(string level) {
+        return GetEntityLevelWeight(SubjectLevels,level);
+    }
+
     public static void Init(string path) {
         if(!File.Exists(path)) {
             SqliteConnection.CreateFile(path);

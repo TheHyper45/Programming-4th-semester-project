@@ -41,6 +41,7 @@ public class MainMenuSettingsMenu : MonoBehaviour {
     }
 
     private void OnLogoutButtonClick() {
+        databaseManagement.Model.Logout();
         menu.Logout();
     }
 
