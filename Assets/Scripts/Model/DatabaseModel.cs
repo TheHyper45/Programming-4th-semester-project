@@ -16,6 +16,24 @@ public class DatabaseModel {
         }
     }
 
+    public class User {
+        public string FirstName { get; private set; }
+        public string LastName { get; private set; }
+        public string Login { get; private set; }
+        public string Password { get; private set; }
+        public string Sex { get; private set; }
+        public string CallNumber { get; private set; }
+        public User(string firstName,string lastName,string login,string password,string sex,string callNumber) {
+            FirstName = firstName;
+            LastName = lastName;
+            Login = login;
+            Password = password;
+            Sex = sex;
+            CallNumber = callNumber;
+        }
+
+    };
+
     public readonly string path;
 
     public string CurrentLogin { get; private set; } = null;
@@ -41,7 +59,7 @@ public class DatabaseModel {
         CurrentLogin = null;
     }
 
-    public void CreateNewAccount(string login,string password,string firstName,string lastName,string sex,int callNumber) {
+    public void CreateNewAccount(string login,string password,string firstName,string lastName,string sex,int phoneNumber) {
         using SqliteConnection conn = new($"Data Source={path};Version=3;New=False;");
         conn.Open();
         using var cmd = conn.CreateCommand();
@@ -53,7 +71,7 @@ public class DatabaseModel {
             }
         }
 
-        cmd.CommandText = $"INSERT INTO Osoby(Imiê,Nazwisko,Login,Has³o,P³eæ,Telefon) VALUES ('{firstName}','{lastName}','{login}','{password}','{sex}',{callNumber});";
+        cmd.CommandText = $"INSERT INTO Osoby(Imiê,Nazwisko,Login,Has³o,P³eæ,Telefon) VALUES ('{firstName}','{lastName}','{login}','{password}','{sex}',{phoneNumber});";
         cmd.ExecuteNonQuery();
     }
 
@@ -177,5 +195,18 @@ public class DatabaseModel {
 
     public void UpdateSubjectsForCurrentAccount(List<Entity> subjects) {
         UpdateEntitiesForCurrentAccount(subjects,"Przedmioty","Osoby_Przedmioty","Id_p");
+    }
+
+    public List<User> GetMatchingUsersForCurrentAccount() {
+        Trace.Assert(CurrentLogin != null);
+        var accountID = GetCurrentAccountID();
+
+        using SqliteConnection conn = new($"Data Source={path};Version=3;New=False;");
+        conn.Open();
+
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = $"SELECT Imiê,Nazwisko,Login,Has³o,P³eæ,Telefon FROM Osoby WHERE Id <> {accountID} ORDER BY 0;";
+
+        return new();
     }
 }
