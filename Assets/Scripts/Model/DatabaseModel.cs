@@ -245,6 +245,7 @@ public class DatabaseModel {
         var currentLanguages = GetLanguagesForCurrentAccount();
         var currentSports = GetSportsForCurrentAccount();
         var currentSubjects = GetSubjectsForCurrentAccount();
+        var currentFriendIDs = GetFriendIDsForCurrentAccount();
 
         List<int> userIDs = new();
         Dictionary<int,int> userEvaluations = new();
@@ -254,7 +255,13 @@ public class DatabaseModel {
         conn.Open();
 
         using var cmd = conn.CreateCommand();
-        cmd.CommandText = $"SELECT Id FROM Osoby WHERE Id <> {currentAccountID};";
+        if(currentFriendIDs.Count == 0) {
+            cmd.CommandText = $"SELECT Id FROM Osoby WHERE Id <> {currentAccountID};";
+        }
+        else {
+            cmd.CommandText = $"SELECT Id FROM Osoby WHERE Id NOT IN ({currentAccountID},{string.Join(',',currentFriendIDs)});";
+        }
+
         using var reader = cmd.ExecuteReader();
         while(reader.HasRows && reader.Read()) {
             var userID = reader.GetInt32(0);

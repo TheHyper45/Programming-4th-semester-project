@@ -27,6 +27,8 @@ public class MainMenuTinderMenu : MonoBehaviour {
     private TMP_Text subjectInfoText;
     [SerializeField]
     private TMP_Text titleScreenErrorText;
+    [SerializeField]
+    private TMP_Text userAcceptedText;
 
     private List<int> foundMatchingUserIDs;
     private int currentMatchIndex;
@@ -44,10 +46,12 @@ public class MainMenuTinderMenu : MonoBehaviour {
     }
 
     private void SetupUserMatchingScreen() {
+        acceptMatchButton.interactable = true;
         matchNameText.text = ":(";
         languageInfoText.text = "";
         sportInfoText.text = "";
         subjectInfoText.text = "";
+        userAcceptedText.text = "";
         var userID = foundMatchingUserIDs[currentMatchIndex];
         var user = databaseManagement.Model.GetUserEntity(userID);
         if(user == null) {
@@ -84,7 +88,18 @@ public class MainMenuTinderMenu : MonoBehaviour {
     }
 
     private void OnAcceptButtonClick() {
-        //databaseManagement.Model.AddFriendForCurrentAccount(foundMatchingUserIDs[currentMatchIndex].Id);
+        try {
+            databaseManagement.Model.AddFriendForCurrentAccount(foundMatchingUserIDs[currentMatchIndex]);
+        }
+        catch(Exception error) {
+            titleScreen.SetActive(true);
+            matchingUserScreen.SetActive(false);
+            titleScreenErrorText.text = error.Message;
+            return;
+        }
+        foundMatchingUserIDs.RemoveAt(currentMatchIndex);
+        acceptMatchButton.interactable = false;
+        userAcceptedText.text = "Osoba zosta³a zaakceptowana!";
     }
 
     private void OnDeclineButtonClick() {
