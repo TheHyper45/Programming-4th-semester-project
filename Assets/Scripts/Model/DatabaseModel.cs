@@ -116,6 +116,7 @@ public class DatabaseModel {
 
         using var cmd = conn.CreateCommand();
         //@TODO: Remove apropriate entries from 'STP' and 'STP_Spotkania' tables.
+        //@TODO: Make sure 'Spotkania' and 'Osoby_Spotkania' tables are handled properly.
         cmd.CommandText = $@"
             BEGIN TRANSACTION;
             DELETE FROM Osoby_Jêzyki WHERE Id_o = {accountID};
@@ -151,21 +152,31 @@ public class DatabaseModel {
         return entities;
     }
 
-    private List<Entity> GetEntitiesForCurrentAccount(string entityTableName,string userTableName,string entityTableIdColumnName) {
-        Trace.Assert(CurrentLogin != null);
-        return GetEntities(GetCurrentAccountID(),entityTableName,userTableName,entityTableIdColumnName);
+    public List<Entity> GetLanguages(int accountID) {
+        return GetEntities(accountID,"Jêzyki","Osoby_Jêzyki","Id_j");
+    }
+
+    public List<Entity> GetSports(int accountID) {
+        return GetEntities(accountID,"Sport","Osoby_Sport","Id_s");
+    }
+
+    public List<Entity> GetSubjects(int accountID) {
+        return GetEntities(accountID,"Przedmioty","Osoby_Przedmioty","Id_p");
     }
 
     public List<Entity> GetLanguagesForCurrentAccount() {
-        return GetEntitiesForCurrentAccount("Jêzyki","Osoby_Jêzyki","Id_j");
+        Trace.Assert(CurrentLogin != null);
+        return GetLanguages(GetCurrentAccountID());
     }
 
     public List<Entity> GetSportsForCurrentAccount() {
-        return GetEntitiesForCurrentAccount("Sport","Osoby_Sport","Id_s");
+        Trace.Assert(CurrentLogin != null);
+        return GetSports(GetCurrentAccountID());
     }
 
     public List<Entity> GetSubjectsForCurrentAccount() {
-        return GetEntitiesForCurrentAccount("Przedmioty","Osoby_Przedmioty","Id_p");
+        Trace.Assert(CurrentLogin != null);
+        return GetSubjects(GetCurrentAccountID());
     }
 
     private void UpdateEntitiesForCurrentAccount(List<Entity> entities,string entityTableName,string userTableName,string entityTableIdColumnName) {
@@ -204,73 +215,121 @@ public class DatabaseModel {
         UpdateEntitiesForCurrentAccount(subjects,"Przedmioty","Osoby_Przedmioty","Id_p");
     }
 
-    public List<User> GetMatchingUsersForCurrentAccount() {
+    public User GetUserEntity(int accountID) {
+        using SqliteConnection conn = new($"Data Source={path};Version=3;New=False;");
+        conn.Open();
+        User user = null;
+
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = $"SELECT Imiê,Nazwisko,Login,Has³o,P³eæ,Telefon FROM Osoby WHERE Id = {accountID};";
+        using var reader = cmd.ExecuteReader();
+        while(reader.HasRows && reader.Read()) {
+            var languages = GetLanguages(accountID);
+            var sports = GetSports(accountID);
+            var subjects = GetSubjects(accountID);
+            user = new(accountID,
+                       reader.GetString(0),
+                       reader.GetString(1),
+                       reader.GetString(2),
+                       reader.GetString(3),
+                       reader.GetString(4),
+                       reader.GetString(5),
+                       languages,sports,subjects);
+        }
+        return user;
+    }
+
+    public List<int> GetMatchingUserIDsForCurrentAccount() {
         Trace.Assert(CurrentLogin != null);
         var currentAccountID = GetCurrentAccountID();
         var currentLanguages = GetLanguagesForCurrentAccount();
         var currentSports = GetSportsForCurrentAccount();
         var currentSubjects = GetSubjectsForCurrentAccount();
 
+        List<int> userIDs = new();
+        Dictionary<int,int> userEvaluations = new();
+
         Random random = new();
-        List<User> users = new();
-        Dictionary<User,int> userEvaluations = new();
         using SqliteConnection conn = new($"Data Source={path};Version=3;New=False;");
         conn.Open();
 
         using var cmd = conn.CreateCommand();
-        cmd.CommandText = $"SELECT Id,Imiê,Nazwisko,Login,Has³o,P³eæ,Telefon FROM Osoby WHERE Id <> {currentAccountID};";
+        cmd.CommandText = $"SELECT Id FROM Osoby WHERE Id <> {currentAccountID};";
         using var reader = cmd.ExecuteReader();
         while(reader.HasRows && reader.Read()) {
-            User user = new(
-                reader.GetInt32(0),
-                reader.GetString(1),
-                reader.GetString(2),
-                reader.GetString(3),
-                reader.GetString(4),
-                reader.GetString(5),
-                reader.GetString(6),
-                GetEntities(reader.GetInt32(0),"Jêzyki","Osoby_Jêzyki","Id_j"),
-                GetEntities(reader.GetInt32(0),"Sport","Osoby_Sport","Id_s"),
-                GetEntities(reader.GetInt32(0),"Przedmioty","Osoby_Przedmioty","Id_p")
-            );
+            var userID = reader.GetInt32(0);
+            var userLanguages = GetLanguages(userID);
+            var userSports = GetSports(userID);
+            var userSubjects = GetSubjects(userID);
 
             int evaluation = 0;
             foreach(var currentLanguage in currentLanguages) {
-                foreach(var userLanguage in user.Languages) {
+                foreach(var userLanguage in userLanguages) {
                     if(userLanguage.Name.Equals(currentLanguage.Name)) {
-                        evaluation += currentLanguage.Priority * DatabaseGeneration.GetLanguageLevelWeight(userLanguage.Level) + random.Next(-5,6);
+                        evaluation += currentLanguage.Priority * DatabaseGeneration.GetLanguageLevelWeight(userLanguage.Level);
                     }
                 }
             }
             foreach(var currentSport in currentSports) {
-                foreach(var userSport in user.Sports) {
+                foreach(var userSport in userSports) {
                     if(userSport.Name.Equals(currentSport.Name)) {
-                        evaluation += currentSport.Priority * DatabaseGeneration.GetSportLevelWeight(userSport.Level) + random.Next(-5,6);
+                        evaluation += currentSport.Priority * DatabaseGeneration.GetSportLevelWeight(userSport.Level);
                     }
                 }
             }
             foreach(var currentSubject in currentSubjects) {
-                foreach(var userSubject in user.Subjects) {
+                foreach(var userSubject in userSubjects) {
                     if(userSubject.Name.Equals(currentSubject.Name)) {
-                        evaluation += currentSubject.Priority * DatabaseGeneration.GetSubjectLevelWeight(userSubject.Level) + random.Next(-5,6);
+                        evaluation += currentSubject.Priority * DatabaseGeneration.GetSubjectLevelWeight(userSubject.Level);
                     }
                 }
             }
-            userEvaluations.Add(user,evaluation);
-            users.Add(user);
+            evaluation += random.Next(-4,5);
+            userEvaluations.Add(userID,evaluation);
+            userIDs.Add(userID);
         }
-        users.Sort((User a,User b) => {
-            if(a == null && b != null) {
-                return 1;
-            }
-            if(a != null && b == null) {
-                return -1;
-            }
-            return (a == b) ? 0 : (userEvaluations[a] >= userEvaluations[b] ? -1 : 1);
+        userIDs.Sort((int a,int b) => {
+            return userEvaluations[b] - userEvaluations[a];
         });
-        if(users.Count > 100) {
-            users.RemoveRange(100,users.Count - 100);
+        if(userIDs.Count > 128) {
+            userIDs.RemoveRange(128,userIDs.Count - 128);
         }
-        return users;
+        return userIDs;
+    }
+
+    public void AddFriendForCurrentAccount(int otherID) {
+        Trace.Assert(CurrentLogin != null);
+        int currentID = GetCurrentAccountID();
+
+        using SqliteConnection conn = new($"Data Source={path};Version=3;New=False;");
+        conn.Open();
+
+        StringBuilder builder = new();
+        builder.Append("BEGIN TRANSACTION;");
+        builder.Append("INSERT INTO Spotkania(Status,Data) VALUES ('true',date());");
+        builder.Append($"INSERT INTO Osoby_Spotkania(Id_o,Id_s,Ocena,Chêtny) VALUES ({currentID},last_insert_rowid(),1337,0);");
+        builder.Append($"INSERT INTO Osoby_Spotkania(Id_o,Id_s,Ocena,Chêtny) VALUES ({otherID},(SELECT Id_s FROM Osoby_Spotkania WHERE rowid = last_insert_rowid()),1337,0);");
+        builder.Append("COMMIT TRANSACTION;");
+
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = builder.ToString();
+        cmd.ExecuteNonQuery();
+    }
+
+    public List<int> GetFriendIDsForCurrentAccount() {
+        Trace.Assert(CurrentLogin != null);
+        int currentID = GetCurrentAccountID();
+        List<int> userIDs = new();
+
+        using SqliteConnection conn = new($"Data Source={path};Version=3;New=False;");
+        conn.Open();
+
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = $"SELECT Id_o FROM Osoby_Spotkania WHERE Chêtny = 0 AND Id_o <> {currentID} AND Id_s IN (SELECT Id FROM Spotkania WHERE Id IN (SELECT Id_s FROM Osoby_Spotkania WHERE Chêtny = 0 AND Id_o = {currentID}));";
+        using var reader = cmd.ExecuteReader();
+        while(reader.HasRows && reader.Read()) {
+            userIDs.Add(reader.GetInt32(0));
+        }
+        return userIDs;
     }
 }

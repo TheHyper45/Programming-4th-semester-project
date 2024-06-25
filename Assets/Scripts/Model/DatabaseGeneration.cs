@@ -64,7 +64,7 @@ public class DatabaseGeneration {
                 Nazwisko TEXT NOT NULL,
                 Login TEXT UNIQUE NOT NULL,
                 Has³o TEXT NOT NULL,
-                P³eæ TEXT CHECK(P³eæ in ('Mê¿czyzna','Kobieta')),
+                P³eæ TEXT NOT NULL CHECK(P³eæ in ('Mê¿czyzna','Kobieta')),
                 Telefon VARCHAR(12) NOT NULL
             );");
             builder.Append(@"CREATE TABLE Jêzyki(
@@ -118,7 +118,7 @@ public class DatabaseGeneration {
                 Id_o INTEGER NOT NULL,
                 Id_s INTEGER NOT NULL,
                 Ocena INTEGER NOT NULL,
-                Chêtny BOOLEAN NOT NULL,
+                Chêtny INTEGER NOT NULL CHECK(Chêtny in (0,1)),
                 FOREIGN KEY(Id_o) REFERENCES Osoby(Id),
                 FOREIGN KEY(Id_s) REFERENCES Spotkania(Id)
             );");
