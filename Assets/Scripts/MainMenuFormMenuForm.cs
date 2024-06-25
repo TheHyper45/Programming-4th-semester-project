@@ -3,7 +3,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
-using static UnityEditor.PlayerSettings.Switch;
+
 
 public class MainMenuFormMenuForm : MonoBehaviour {
     [SerializeField]
@@ -67,7 +67,7 @@ public class MainMenuFormMenuForm : MonoBehaviour {
         List<DatabaseModel.Entity> entities = new();
         foreach(var existingOption in allOptionsContainer.GetComponentsInChildren<FormOption>()) {
             if(!int.TryParse(existingOption.GetPriority(),out int priority)) {
-                errorText.text = "Priorytet musi byæ liczb¹ ca³kowit¹.";
+                errorText.text = "Priorytet musi byï¿½ liczbï¿½ caï¿½kowitï¿½.";
                 errorTextResetCooldown = 3.0f;
                 return;
             }
@@ -122,7 +122,7 @@ public class MainMenuFormMenuForm : MonoBehaviour {
         string text = possibleOptionDropdown.options[possibleOptionDropdown.value].text;
         foreach(var existingOption in allOptionsContainer.GetComponentsInChildren<FormOption>()) {
             if(existingOption.GetHeaderText().Equals(text)) {
-                errorText.text = "Taka opcja ju¿ istnieje.";
+                errorText.text = "Taka opcja juï¿½ istnieje.";
                 errorTextResetCooldown = 3.0f;
                 return;
             }
@@ -135,3 +135,4 @@ public class MainMenuFormMenuForm : MonoBehaviour {
         LayoutRebuilder.ForceRebuildLayoutImmediate(RectTransform);
     }
 }
+

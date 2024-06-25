@@ -72,6 +72,7 @@ public class Calendar : MonoBehaviour {
         public int Day { get; private set; }
         public int Hour { get; private set; }
         public int PersonID { get; private set; }
+        public int Grade { get; set; }
 
         public Meeting(int year,int month,int day,int hour,int personID) {
             Year = year;
@@ -79,6 +80,11 @@ public class Calendar : MonoBehaviour {
             Day = day;
             Hour = hour;
             PersonID = personID;
+            Grade = 0;
+        }
+        public new string ToString()
+        {
+            return $"{Day}/{Month}/{Year}";
         }
     }
 
