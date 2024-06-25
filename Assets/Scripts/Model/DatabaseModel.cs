@@ -249,7 +249,7 @@ public class DatabaseModel {
             conn.Open();
 
             using var cmd = conn.CreateCommand();
-            cmd.CommandText = $"SELECT Id,Imiê,Nazwisko FROM Osoby WHERE Id IN ({string.Join(',',names)});";
+            cmd.CommandText = $"SELECT Id,Imiê,Nazwisko FROM Osoby WHERE Id IN ({string.Join(',',currentFriendIDs)});";
             using var reader = cmd.ExecuteReader();
             while(reader.HasRows && reader.Read()) {
                 names.Add(new(reader.GetInt32(0),$"{reader.GetString(1)} {reader.GetString(2)}"));
