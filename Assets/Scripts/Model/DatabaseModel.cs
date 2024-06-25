@@ -123,8 +123,8 @@ public class DatabaseModel {
             DELETE FROM Osoby_Sport WHERE Id_o = {accountID};
             DELETE FROM Osoby_Przedmioty WHERE Id_o = {accountID};
             DELETE FROM Zbanowane_Osoby WHERE Id_1 = {accountID} OR Id_2 = {accountID};
-            DELETE FROM Osoby_Spotkania WHERE Id_o = {accountID};
-            DELETE FROM Spotkania WHERE Id not in (SELECT Id_s FROM Osoby_Spotkania);
+            -- DELETE FROM Osoby_Spotkania WHERE Id_o = {accountID};
+            -- DELETE FROM Spotkania WHERE Id not in (SELECT Id_s FROM Osoby_Spotkania);
             DELETE FROM Osoby WHERE Id = {accountID};
             COMMIT TRANSACTION;
         ";
@@ -237,6 +237,25 @@ public class DatabaseModel {
                        languages,sports,subjects);
         }
         return user;
+    }
+
+    public List<KeyValuePair<int,string>> GetFriendUserNamesForCurrentAccount() {
+        Trace.Assert(CurrentLogin != null);
+        List<KeyValuePair<int,string>> names = new();
+
+        var currentFriendIDs = GetFriendIDsForCurrentAccount();
+        if(currentFriendIDs.Count > 0) {
+            using SqliteConnection conn = new($"Data Source={path};Version=3;New=False;");
+            conn.Open();
+
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = $"SELECT Id,Imiê,Nazwisko FROM Osoby WHERE Id IN ({string.Join(',',names)});";
+            using var reader = cmd.ExecuteReader();
+            while(reader.HasRows && reader.Read()) {
+                names.Add(new(reader.GetInt32(0),$"{reader.GetString(1)} {reader.GetString(2)}"));
+            }
+        }
+        return names;
     }
 
     public List<int> GetMatchingUserIDsForCurrentAccount() {
