@@ -27,11 +27,17 @@ public class MainMenuGradeMenu : MonoBehaviour
     }
     private void OnEnable()
     {
+        calendar.OnEnable();
         while (AllMeetings.transform.childCount > 0) { 
             DestroyImmediate(AllMeetings.transform.GetChild(0).gameObject);
         }
         AddMeetings();
         GradingMeetingsPanel.SetActive(false);
+        
+    }
+    private void OnDisable()
+    {
+        calendar.OnDisable();
     }
     public void AddMeetings()
     {
