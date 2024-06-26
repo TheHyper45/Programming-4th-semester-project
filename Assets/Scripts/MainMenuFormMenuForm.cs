@@ -135,4 +135,3 @@ public class MainMenuFormMenuForm : MonoBehaviour {
         LayoutRebuilder.ForceRebuildLayoutImmediate(RectTransform);
     }
 }
-

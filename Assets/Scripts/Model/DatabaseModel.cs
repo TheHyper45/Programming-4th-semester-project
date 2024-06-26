@@ -350,15 +350,32 @@ public class DatabaseModel {
         using SqliteConnection conn = new($"Data Source={path};Version=3;New=False;");
         conn.Open();
 
-        StringBuilder builder = new();
-        builder.Append("BEGIN TRANSACTION;");
-        builder.Append("INSERT INTO Spotkania(Status,Data) VALUES ('true',date());");
-        builder.Append($"INSERT INTO Osoby_Spotkania(Id_o,Id_s,Ocena,Chêtny) VALUES ({currentID},last_insert_rowid(),1337,0);");
-        builder.Append($"INSERT INTO Osoby_Spotkania(Id_o,Id_s,Ocena,Chêtny) VALUES ({otherID},(SELECT Id_s FROM Osoby_Spotkania WHERE rowid = last_insert_rowid()),1337,0);");
-        builder.Append("COMMIT TRANSACTION;");
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = $@"
+            BEGIN TRANSACTION;
+            INSERT INTO Spotkania(Status,Data) VALUES ('true',date());
+            INSERT INTO Osoby_Spotkania(Id_o,Id_s,Ocena,Chêtny) VALUES ({currentID},last_insert_rowid(),1337,0);
+            INSERT INTO Osoby_Spotkania(Id_o,Id_s,Ocena,Chêtny) VALUES ({otherID},(SELECT Id_s FROM Osoby_Spotkania WHERE rowid = last_insert_rowid()),1337,0);
+            COMMIT TRANSACTION;
+        ";
+        cmd.ExecuteNonQuery();
+    }
+
+    public void RemoveFriendForCurrentAccount(int otherID) {
+        Trace.Assert(CurrentLogin != null);
+        int currentID = GetCurrentAccountID();
+
+        using SqliteConnection conn = new($"Data Source={path};Version=3;New=False;");
+        conn.Open();
 
         using var cmd = conn.CreateCommand();
-        cmd.CommandText = builder.ToString();
+        cmd.CommandText = $@"
+            BEGIN TRANSACTION;
+            DELETE FROM Osoby_Spotkania WHERE Id_o = {otherID} AND Id_s IN (SELECT Id_s FROM Osoby_Spotkania WHERE Id_o = {currentID});
+            DELETE FROM Osoby_Spotkania WHERE Id_o = {currentID};
+            DELETE FROM Spotkania WHERE Id NOT IN (SELECT Id_s FROM Osoby_Spotkania);
+            COMMIT TRANSACTION;
+        ";
         cmd.ExecuteNonQuery();
     }
 
@@ -449,5 +466,19 @@ public class DatabaseModel {
         using var cmd = conn.CreateCommand();
         cmd.CommandText = builder.ToString();
         cmd.ExecuteNonQuery();
+    }
+
+    public void BanUserForCurrentAccount(int bannedAccountID) {
+        Trace.Assert(CurrentLogin != null);
+        int currentID = GetCurrentAccountID();
+
+        using SqliteConnection conn = new($"Data Source={path};Version=3;New=False;");
+        conn.Open();
+
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = $"INSERT INTO Zbanowane_Osoby(Id_1,Id_2) VALUES ({currentID},{bannedAccountID});";
+        cmd.ExecuteNonQuery();
+
+        RemoveFriendForCurrentAccount(bannedAccountID);
     }
 }
