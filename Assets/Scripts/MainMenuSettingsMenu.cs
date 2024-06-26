@@ -37,7 +37,15 @@ public class MainMenuSettingsMenu : MonoBehaviour {
         accountDeleteButton.gameObject.SetActive(true);
         accountDeletePrompt.SetActive(false);
         var sex = databaseManagement.Model.GetCurrentAccountSex();
-        accountDeletePromptText.text = $"Jesteœ {(sex.Equals("Mê¿czyzna") ? "pewien" : "pewna")} usuniêcia konta?";
+        if(sex.Equals("Mê¿czyzna")) {
+            accountDeletePromptText.text = $"Jesteœ pewien usuniêcia konta?";
+        }
+        else if(sex.Equals("Kobieta")) {
+            accountDeletePromptText.text = $"Jesteœ pewna usuniêcia konta?";
+        }
+        else {
+            accountDeletePromptText.text = $"Jesteœ pewien/pewna usuniêcia konta?";
+        }
     }
 
     private void OnLogoutButtonClick() {

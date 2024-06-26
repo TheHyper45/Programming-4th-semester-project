@@ -1,9 +1,9 @@
 using System;
 using System.IO;
 using System.Text;
+using Mono.Data.Sqlite;
 using System.Diagnostics;
 using System.Collections.Generic;
-using Mono.Data.Sqlite;
 
 public class DatabaseGeneration {
     public static readonly string[] Languages =
@@ -20,13 +20,13 @@ public class DatabaseGeneration {
         {"brak","pocz¹tkuj¹cy","œredniozaawansowany","zaawansowany"};
 
     private static readonly string[] FirstNamesMale =
-        {"Dawid","Mateusz","Dominik","Adam","Pawe³","Andrzej","Kacper","Bartek","Wojtek","Micha³","Waldemar","Mariusz"};
+        {"Dawid","Mateusz","Dominik","Adam","Pawe³","Andrzej","Kacper","Bartek","Wojtek","Micha³","Waldemar","Mariusz","Robert","Filip","Szymon","Kamil"};
     private static readonly string[] LastNamesMale =
-        {"Nowak","Kowalski","Wiœniewski","Wójcik","Duda","Kowalczyk","Szymañski","WoŸniak","Kamiñski","Krawczyk"};
+        {"Nowak","Kowalski","Wiœniewski","Wójcik","Duda","Kowalczyk","Szymañski","WoŸniak","Kamiñski","Krawczyk","Zieliñski","Grabowski","Piotrowski","Zalewski","Cieœlak","Marsza³ek"};
     private static readonly string[] FirstNamesFemale =
-        {"Asia","Agnieszka","Agata","Karolina","Barbara","Laura","Aleksandra","Patrycja","Edyta","Basia","Monika","Katarzyna"};
+        {"Asia","Agnieszka","Agata","Karolina","Barbara","Laura","Aleksandra","Patrycja","Edyta","Basia","Monika","Katarzyna","Kasia","Oliwka","Alicja","Paulina"};
     private static readonly string[] LastNamesFemale =
-        {"Nowak","Kowalska","Wiœniewska","Kaczmarek","Duda","Kowalczyk","Szymañska","WoŸniak","Kamiñska","Mazur"};
+        {"Nowak","Kowalska","Wiœniewska","Kaczmarek","Duda","Kowalczyk","Szymañska","WoŸniak","Kamiñska","Mazur","Zieliñska","Grabowska","Piotrowska","Zalewska","Cieœlak","Marsza³ek"};
 
     private static int GetEntityLevelWeight(string[] levels,string level) {
         for(int i = 0;i < levels.Length;i += 1) {
@@ -64,7 +64,7 @@ public class DatabaseGeneration {
                 Nazwisko TEXT NOT NULL,
                 Login TEXT UNIQUE NOT NULL,
                 Has³o TEXT NOT NULL,
-                P³eæ TEXT NOT NULL CHECK(P³eæ in ('Mê¿czyzna','Kobieta')),
+                P³eæ TEXT NOT NULL CHECK(P³eæ in ('Mê¿czyzna','Kobieta','Nieznana')),
                 Telefon VARCHAR(12) NOT NULL
             );");
             builder.Append(@"CREATE TABLE Jêzyki(

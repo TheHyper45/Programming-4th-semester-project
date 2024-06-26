@@ -27,6 +27,8 @@ public class Calendar : MonoBehaviour {
     private Button rightClickMonthButton;
     [SerializeField]
     private TMP_Text errorText;
+    [SerializeField]
+    private TMP_Dropdown friendEnumDropdown;
 
     public Transform[] weeks;
     public TMP_Text MonthAndYear;

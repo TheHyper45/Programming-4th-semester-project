@@ -1,8 +1,8 @@
-using System;
-using System.Text;
 using Mono.Data.Sqlite;
-using System.Diagnostics;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Text;
 
 public class DatabaseModel {
     public class Entity {
@@ -116,15 +116,15 @@ public class DatabaseModel {
 
         using var cmd = conn.CreateCommand();
         //@TODO: Remove apropriate entries from 'STP' and 'STP_Spotkania' tables.
-        //@TODO: Make sure 'Spotkania' and 'Osoby_Spotkania' tables are handled properly.
         cmd.CommandText = $@"
             BEGIN TRANSACTION;
             DELETE FROM Osoby_Jêzyki WHERE Id_o = {accountID};
             DELETE FROM Osoby_Sport WHERE Id_o = {accountID};
             DELETE FROM Osoby_Przedmioty WHERE Id_o = {accountID};
             DELETE FROM Zbanowane_Osoby WHERE Id_1 = {accountID} OR Id_2 = {accountID};
-            -- DELETE FROM Osoby_Spotkania WHERE Id_o = {accountID};
-            -- DELETE FROM Spotkania WHERE Id not in (SELECT Id_s FROM Osoby_Spotkania);
+            DELETE FROM Osoby_Spotkania WHERE Id_o <> {accountID} AND Id_s IN (SELECT Id_s FROM Osoby_Spotkania WHERE Id_o = {accountID});
+            DELETE FROM Osoby_Spotkania WHERE Id_o = {accountID};
+            DELETE FROM Spotkania WHERE Id NOT IN (SELECT Id_s FROM Osoby_Spotkania);
             DELETE FROM Osoby WHERE Id = {accountID};
             COMMIT TRANSACTION;
         ";
@@ -310,7 +310,7 @@ public class DatabaseModel {
                     }
                 }
             }
-            evaluation += random.Next(-4,5);
+            evaluation += random.Next(-10,11);
             userEvaluations.Add(userID,evaluation);
             userIDs.Add(userID);
         }
@@ -357,5 +357,43 @@ public class DatabaseModel {
             userIDs.Add(reader.GetInt32(0));
         }
         return userIDs;
+    }
+
+    public void AddMeetingForCurrentAccount(int otherAccountID,int year,int month,int day,int hour) {
+        Trace.Assert(CurrentLogin != null);
+        int currentID = GetCurrentAccountID();
+
+        using SqliteConnection conn = new($"Data Source={path};Version=3;New=False;");
+        conn.Open();
+
+        string dateString = $"{(year)}-{(month < 9 ? $"0{month}" : $"{month}")}-{(day < 9 ? $"0{day}" : $"{day}")} {(hour < 9 ? $"0{hour}" : $"{hour}")}:00:00";
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = $@"
+            BEGIN TRANSACTION;
+            INSERT INTO Spotkania(Status,Data) VALUES ('true','{dateString}');
+            INSERT INTO Osoby_Spotkania(Id_o,Id_s,Ocena,Chêtny) VALUES ({currentID},last_insert_rowid(),0,1);
+            INSERT INTO Osoby_Spotkania(Id_o,Id_s,Ocena,Chêtny) VALUES ({otherAccountID},(SELECT Id_s FROM Osoby_Spotkania WHERE rowid = last_insert_rowid()),0,1);
+            COMMIT TRANSACTION;
+        ";
+        cmd.ExecuteNonQuery();
+    }
+
+    public void RemoveMeetingForCurrentAccount(string otherAccountID,int year,int month,int day) {
+        Trace.Assert(CurrentLogin != null);
+        int currentID = GetCurrentAccountID();
+
+        using SqliteConnection conn = new($"Data Source={path};Version=3;New=False;");
+        conn.Open();
+
+        string dateString = $"{(year)}-{(month < 9 ? $"0{month}" : $"{month}")}-{(day < 9 ? $"0{day}" : $"{day}")}";
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = $@"
+            BEGIN TRANSACTION;
+            DELETE FROM Osoby_Spotkania WHERE Chêtny = 1 AND Id_o = {otherAccountID} AND Id_s IN (SELECT Id_s FROM Osoby_Spotkania WHERE Chêtny = 1 AND Id_o = {currentID} AND Id_s IN (SELECT Id FROM Spotkania WHERE strftime('%Y-%m-%d',Data) = '{dateString}'));
+            DELETE FROM Osoby_Spotkania WHERE Chêtny = 1 AND Id_o = {currentID} AND Id_s IN (SELECT Id FROM Spotkania WHERE strftime('%Y-%m-%d',Data) = '{dateString}');
+            DELETE FROM Spotkania WHERE Id NOT IN (SELECT Id_s FROM Osoby_Spotkania WHERE Chêtny = 1);
+            COMMIT TRANSACTION;
+        ";
+        cmd.ExecuteNonQuery();
     }
 }
