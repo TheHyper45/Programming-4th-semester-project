@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using static Calendar;
 
 public class DatabaseModel {
     public class Entity {
@@ -41,6 +42,23 @@ public class DatabaseModel {
         }
 
     };
+
+    public class Meeting {
+        public int Year { get; private set; }
+        public int Month { get; private set; }
+        public int Day { get; private set; }
+        public int Hour { get; private set; }
+        public int User0ID { get; private set; }
+        public int User1ID { get; private set; }
+        public Meeting(int year,int month,int day,int hour,int user0ID,int user1ID) {
+            Year = year;
+            Month = month;
+            Day = day;
+            Hour = hour;
+            User0ID = user0ID;
+            User1ID = user1ID;
+        }
+    }
 
     public readonly string path;
 
@@ -359,41 +377,60 @@ public class DatabaseModel {
         return userIDs;
     }
 
-    public void AddMeetingForCurrentAccount(int otherAccountID,int year,int month,int day,int hour) {
+    public List<Meeting> GetMeetingsForCurrentAccount() {
         Trace.Assert(CurrentLogin != null);
         int currentID = GetCurrentAccountID();
+        List<Meeting> meetings = new();
 
         using SqliteConnection conn = new($"Data Source={path};Version=3;New=False;");
         conn.Open();
 
-        string dateString = $"{(year)}-{(month < 9 ? $"0{month}" : $"{month}")}-{(day < 9 ? $"0{day}" : $"{day}")} {(hour < 9 ? $"0{hour}" : $"{hour}")}:00:00";
         using var cmd = conn.CreateCommand();
-        cmd.CommandText = $@"
-            BEGIN TRANSACTION;
-            INSERT INTO Spotkania(Status,Data) VALUES ('true','{dateString}');
-            INSERT INTO Osoby_Spotkania(Id_o,Id_s,Ocena,Chêtny) VALUES ({currentID},last_insert_rowid(),0,1);
-            INSERT INTO Osoby_Spotkania(Id_o,Id_s,Ocena,Chêtny) VALUES ({otherAccountID},(SELECT Id_s FROM Osoby_Spotkania WHERE rowid = last_insert_rowid()),0,1);
-            COMMIT TRANSACTION;
-        ";
-        cmd.ExecuteNonQuery();
+        cmd.CommandText = $"SELECT Id,strftime('%Y',Data),strftime('%m',Data),strftime('%d',Data),strftime('%H',Data) FROM Spotkania WHERE Id IN (SELECT Id_s FROM Osoby_Spotkania WHERE Chêtny = 1 AND Id_o = {currentID});";
+        using var reader = cmd.ExecuteReader();
+        while(reader.HasRows && reader.Read()) {
+            var meetingID = reader.GetInt32(0);
+            var dateYear = int.Parse(reader.GetString(1));
+            var dateMonth = int.Parse(reader.GetString(2));
+            var dateDay = int.Parse(reader.GetString(3));
+            var dateHour = int.Parse(reader.GetString(4));
+
+            using var cmd2 = conn.CreateCommand();
+            cmd2.CommandText = $"SELECT Id_o FROM Osoby_Spotkania WHERE Id_s = {meetingID} AND Id_o <> {currentID};";
+            using var reader2 = cmd2.ExecuteReader();
+            Trace.Assert(reader2.HasRows);
+            reader2.Read();
+            meetings.Add(new(dateYear,dateMonth,dateDay,dateHour,currentID,reader2.GetInt32(0)));
+        }
+        return meetings;
     }
 
-    public void RemoveMeetingForCurrentAccount(string otherAccountID,int year,int month,int day) {
+    public void UpdateMeetingsForCurrentAccount(List<Meeting> meetings) {
         Trace.Assert(CurrentLogin != null);
         int currentID = GetCurrentAccountID();
 
         using SqliteConnection conn = new($"Data Source={path};Version=3;New=False;");
         conn.Open();
 
-        string dateString = $"{(year)}-{(month < 9 ? $"0{month}" : $"{month}")}-{(day < 9 ? $"0{day}" : $"{day}")}";
-        using var cmd = conn.CreateCommand();
-        cmd.CommandText = $@"
+        StringBuilder builder = new();
+        builder.Append($@"
             BEGIN TRANSACTION;
-            DELETE FROM Osoby_Spotkania WHERE Chêtny = 1 AND Id_o = {otherAccountID} AND Id_s IN (SELECT Id_s FROM Osoby_Spotkania WHERE Chêtny = 1 AND Id_o = {currentID} AND Id_s IN (SELECT Id FROM Spotkania WHERE strftime('%Y-%m-%d',Data) = '{dateString}'));
-            DELETE FROM Osoby_Spotkania WHERE Chêtny = 1 AND Id_o = {currentID} AND Id_s IN (SELECT Id FROM Spotkania WHERE strftime('%Y-%m-%d',Data) = '{dateString}');
+            DELETE FROM Osoby_Spotkania WHERE Id_o <> {currentID} AND Chêtny = 1 AND Id_s IN (SELECT Id_s FROM Osoby_Spotkania WHERE Chêtny = 1 AND Id_o = {currentID});
+            DELETE FROM Osoby_Spotkania WHERE Chêtny = 1 AND Id_o = {currentID};
             DELETE FROM Spotkania WHERE Id NOT IN (SELECT Id_s FROM Osoby_Spotkania WHERE Chêtny = 1);
-            COMMIT TRANSACTION;
-        ";
+        ");
+        foreach(var meeting in meetings) {
+            string dateString = $"{(meeting.Year)}-{(meeting.Month < 9 ? $"0{meeting.Month}" : $"{meeting.Month}")}-{(meeting.Day < 9 ? $"0{meeting.Day}" : $"{meeting.Day}")} {(meeting.Hour < 9 ? $"0{meeting.Hour}" : $"{meeting.Hour}")}:00:00";
+            builder.Append($@"
+                INSERT INTO Spotkania(Status,Data) VALUES ('true','{dateString}');
+                INSERT INTO Osoby_Spotkania(Id_o,Id_s,Ocena,Chêtny) VALUES ({meeting.User0ID},last_insert_rowid(),0,1);
+                INSERT INTO Osoby_Spotkania(Id_o,Id_s,Ocena,Chêtny) VALUES ({meeting.User1ID},(SELECT Id_s FROM Osoby_Spotkania WHERE rowid = last_insert_rowid()),0,1);
+            ");
+        }
+        builder.Append("COMMIT TRANSACTION;");
+
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = builder.ToString();
         cmd.ExecuteNonQuery();
     }
 }
