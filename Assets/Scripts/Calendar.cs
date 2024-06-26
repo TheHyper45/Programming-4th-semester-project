@@ -293,7 +293,7 @@ public class Calendar : MonoBehaviour {
         WholeAboutMeetingText.text = "Brak spotkañ";
     }
 
-    private void DeleteMeetings() {
+    public void DeleteMeetings() {
         int startDay = GetMonthStartDay(currDate.Year,currDate.Month);
         foreach(var meeting in meets) {
             if(meeting.Year == currDate.Year && meeting.Month == currDate.Month && meeting.Day == dayToCalculation - startDay) {

@@ -16,14 +16,23 @@ public class MainMenuGradeMenu : MonoBehaviour
     [SerializeField] GameObject GradingMeetingsPanel;
     [SerializeField] TMP_Text DisplayMeetingInfo;
     [SerializeField] TMP_InputField GradeOFTheMeetingInput;
+    [SerializeField] DatabaseManagement DatabaseManagement;
     private Calendar.Meeting currentMeeting;
     // Start is called before the first frame update
     private void Start()
     {
-        
+        BlockingPersonButton.onClick.AddListener(BlockingPeople);
         NotGradeMeetingButton.onClick.AddListener(() => { GradingMeetingsPanel.SetActive(false); });
         GradeMeetingButton.onClick.AddListener(() => { GradingMeetingsPanel.SetActive(false); currentMeeting.Grade = int.Parse(GradeOFTheMeetingInput.text);Debug.Log(currentMeeting.Grade); });
         ClosingGradingPanelButton.onClick.AddListener(() => { GradingMeetingsPanel.SetActive(false); });
+    }
+
+    public void BlockingPeople()
+    {
+        GradingMeetingsPanel.SetActive(false);
+        DatabaseManagement.Model.BanUserForCurrentAccount(currentMeeting.PersonID);
+        calendar.DeleteMeetings();
+        OnEnable();
     }
     private void OnEnable()
     {
