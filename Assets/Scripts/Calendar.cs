@@ -126,7 +126,6 @@ public class Calendar : MonoBehaviour {
             friendEnumDropdown.AddOptions(new List<string>() { FullName });
             friendIDs.Add(Id);
         }
-        Debug.Log("seks");
     }
     public void OnDisable()
     {
@@ -137,7 +136,6 @@ public class Calendar : MonoBehaviour {
             databaseMeetings.Add(new(meet.Year, meet.Month, meet.Day, meet.Hour, currentUserId, meet.PersonID));
         }
         databaseManagement.Model.UpdateMeetingsForCurrentAccount(databaseMeetings);
-        Debug.Log("seks z niepelnosprawnym");
     }
     private void Update() {
         errorTextClearCooldown -= Time.deltaTime;
@@ -277,22 +275,22 @@ public class Calendar : MonoBehaviour {
     }
 
     public void ShowMeeting() {
-        
         int startDay = GetMonthStartDay(currDate.Year,currDate.Month);
         foreach(var meeting in meets) {
             if(meeting.Year == currDate.Year && meeting.Month == currDate.Month && meeting.Day == dayToCalculation - startDay) {
+                int index = friendIDs.IndexOf(meeting.PersonID);
                 if(meeting.Month <= 9) {
-                    WholeAboutMeetingText.text = $"{meeting.Hour}:00 {meeting.Day + 1}.0{meeting.Month}.{meeting.Year} {friendEnumDropdown.options[friendIDs.IndexOf(meeting.PersonID)].text}";
+                    WholeAboutMeetingText.text = $"{meeting.Hour}:00 {meeting.Day + 1}.0{meeting.Month}.{meeting.Year} {friendEnumDropdown.options[index].text}";
                 }
                 else {
-                    WholeAboutMeetingText.text = $"{meeting.Hour}:00 {meeting.Day + 1}.{meeting.Month}.{meeting.Year} {friendEnumDropdown.options[friendIDs.IndexOf(meeting.PersonID)].text}";
+                    WholeAboutMeetingText.text = $"{meeting.Hour}:00 {meeting.Day + 1}.{meeting.Month}.{meeting.Year} {friendEnumDropdown.options[index].text}";
                 }
+                friendEnumDropdown.value = index;
+                HourOfMeetingText.text = meeting.Hour.ToString();
                 return;
             }
         }
         WholeAboutMeetingText.text = "Brak spotkañ";
-        
-
     }
 
     private void DeleteMeetings() {

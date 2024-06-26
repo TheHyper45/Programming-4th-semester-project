@@ -369,7 +369,7 @@ public class DatabaseModel {
         conn.Open();
 
         using var cmd = conn.CreateCommand();
-        cmd.CommandText = $"SELECT Id_o FROM Osoby_Spotkania WHERE Chêtny = 0 AND Id_o <> {currentID} AND Id_s IN (SELECT Id FROM Spotkania WHERE Id IN (SELECT Id_s FROM Osoby_Spotkania WHERE Chêtny = 0 AND Id_o = {currentID}));";
+        cmd.CommandText = $"SELECT Id_o FROM Osoby_Spotkania WHERE Chêtny = 0 AND Id_o <> {currentID} AND Id_s IN (SELECT Id_s FROM Osoby_Spotkania WHERE Chêtny = 0 AND Id_o = {currentID});";
         using var reader = cmd.ExecuteReader();
         while(reader.HasRows && reader.Read()) {
             userIDs.Add(reader.GetInt32(0));
@@ -415,7 +415,7 @@ public class DatabaseModel {
         StringBuilder builder = new();
         builder.Append($@"
             BEGIN TRANSACTION;
-            DELETE FROM Osoby_Spotkania WHERE Id_o <> {currentID} AND Chêtny = 1 AND Id_s IN (SELECT Id_s FROM Osoby_Spotkania WHERE Chêtny = 1 AND Id_o = {currentID});
+            DELETE FROM Osoby_Spotkania WHERE Id_o <> {currentID} AND Id_s IN (SELECT Id_s FROM Osoby_Spotkania WHERE Chêtny = 1 AND Id_o = {currentID});
             DELETE FROM Osoby_Spotkania WHERE Chêtny = 1 AND Id_o = {currentID};
             DELETE FROM Spotkania WHERE Id NOT IN (SELECT Id_s FROM Osoby_Spotkania WHERE Chêtny = 1);
         ");
