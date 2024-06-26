@@ -10,6 +10,8 @@ public class Calendar : MonoBehaviour {
     [SerializeField]
     private GameObject AddingMeetingsPanel;
     [SerializeField]
+    private DatabaseManagement databaseManagement;
+    [SerializeField]
     private TMP_Text DataAtThePanel; 
     [SerializeField]
     private Button addingMeetingsButton; 
@@ -35,9 +37,10 @@ public class Calendar : MonoBehaviour {
 
     private readonly List<Day> days = new();
     public List<Meeting> meets = new();
+    
     private DateTime currDate = DateTime.Now;
     private int dayToCalculation = 0;
-
+    private List<int> friendIDs = new();
     private float errorTextClearCooldown = 0.0f;
 
     public class Day {
@@ -74,6 +77,7 @@ public class Calendar : MonoBehaviour {
         public int Day { get; private set; }
         public int Hour { get; private set; }
         public int PersonID { get; private set; }
+        
         public int Grade { get; set; }
 
         public Meeting(int year,int month,int day,int hour,int personID) {
@@ -82,6 +86,7 @@ public class Calendar : MonoBehaviour {
             Day = day;
             Hour = hour;
             PersonID = personID;
+            
             Grade = 0;
         }
         public new string ToString()
@@ -91,6 +96,7 @@ public class Calendar : MonoBehaviour {
     }
 
     private void Start() {
+        
         leftClickMonthButton.onClick.AddListener(() => {
             currDate = currDate.AddMonths(-1);
             UpdateCalendar(currDate.Year,currDate.Month);
@@ -106,7 +112,33 @@ public class Calendar : MonoBehaviour {
         deleteMeetingsButton.onClick.AddListener(DeleteMeetings);
         closeMeetingsButton.onClick.AddListener(() => { AddingMeetingsPanel.SetActive(false); });
     }
+    public void OnEnable()
+    {
+        meets.Clear();
+        foreach (var meet in databaseManagement.Model.GetMeetingsForCurrentAccount()) {
+            meets.Add(new(meet.Year,meet.Month,meet.Day,meet.Hour,meet.User1ID));
 
+        }
+        friendIDs.Clear();
+        friendEnumDropdown.ClearOptions();
+        foreach ((var Id, var FullName) in databaseManagement.Model.GetFriendUserNamesForCurrentAccount())
+        {
+            friendEnumDropdown.AddOptions(new List<string>() { FullName });
+            friendIDs.Add(Id);
+        }
+        Debug.Log("seks");
+    }
+    public void OnDisable()
+    {
+        List<DatabaseModel.Meeting> databaseMeetings = new();
+        var currentUserId = databaseManagement.Model.GetCurrentAccountID();
+        foreach (var meet in meets)
+        {
+            databaseMeetings.Add(new(meet.Year, meet.Month, meet.Day, meet.Hour, currentUserId, meet.PersonID));
+        }
+        databaseManagement.Model.UpdateMeetingsForCurrentAccount(databaseMeetings);
+        Debug.Log("seks z niepelnosprawnym");
+    }
     private void Update() {
         errorTextClearCooldown -= Time.deltaTime;
         if(errorTextClearCooldown < 0.0f) {
@@ -234,7 +266,7 @@ public class Calendar : MonoBehaviour {
                 }
             }
             AddingMeetingsPanel.SetActive(false);
-            meets.Add(new(currDate.Year,currDate.Month,dayToCalculation - startDay,hour,1));
+            meets.Add(new(currDate.Year,currDate.Month,dayToCalculation - startDay, hour, friendIDs[friendEnumDropdown.value]));
             UpdateCalendar(currDate.Year,currDate.Month);
             
         }
@@ -245,19 +277,22 @@ public class Calendar : MonoBehaviour {
     }
 
     public void ShowMeeting() {
+        
         int startDay = GetMonthStartDay(currDate.Year,currDate.Month);
         foreach(var meeting in meets) {
             if(meeting.Year == currDate.Year && meeting.Month == currDate.Month && meeting.Day == dayToCalculation - startDay) {
                 if(meeting.Month <= 9) {
-                    WholeAboutMeetingText.text = $"{meeting.Hour}:00 {meeting.Day + 1}.0{meeting.Month}.{meeting.Year}";
+                    WholeAboutMeetingText.text = $"{meeting.Hour}:00 {meeting.Day + 1}.0{meeting.Month}.{meeting.Year} {friendEnumDropdown.options[friendIDs.IndexOf(meeting.PersonID)].text}";
                 }
                 else {
-                    WholeAboutMeetingText.text = $"{meeting.Hour}:00 {meeting.Day + 1}.{meeting.Month}.{meeting.Year}";
+                    WholeAboutMeetingText.text = $"{meeting.Hour}:00 {meeting.Day + 1}.{meeting.Month}.{meeting.Year} {friendEnumDropdown.options[friendIDs.IndexOf(meeting.PersonID)].text}";
                 }
                 return;
             }
         }
         WholeAboutMeetingText.text = "Brak spotkañ";
+        
+
     }
 
     private void DeleteMeetings() {
