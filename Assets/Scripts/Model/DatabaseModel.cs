@@ -50,13 +50,15 @@ public class DatabaseModel {
         public int Hour { get; private set; }
         public int User0ID { get; private set; }
         public int User1ID { get; private set; }
-        public Meeting(int year,int month,int day,int hour,int user0ID,int user1ID) {
+        public int Grade { get; private set; }
+        public Meeting(int year,int month,int day,int hour,int user0ID,int user1ID,int grade) {
             Year = year;
             Month = month;
             Day = day;
             Hour = hour;
             User0ID = user0ID;
             User1ID = user1ID;
+            Grade = grade;
         }
     }
 
@@ -394,13 +396,28 @@ public class DatabaseModel {
             var dateMonth = int.Parse(reader.GetString(2));
             var dateDay = int.Parse(reader.GetString(3));
             var dateHour = int.Parse(reader.GetString(4));
-
+            
             using var cmd2 = conn.CreateCommand();
             cmd2.CommandText = $"SELECT Id_o FROM Osoby_Spotkania WHERE Id_s = {meetingID} AND Id_o <> {currentID};";
-            using var reader2 = cmd2.ExecuteReader();
-            Trace.Assert(reader2.HasRows);
-            reader2.Read();
-            meetings.Add(new(dateYear,dateMonth,dateDay,dateHour,currentID,reader2.GetInt32(0)));
+            var FriendID = 0;
+            using (var reader2 = cmd2.ExecuteReader())
+            {
+                Trace.Assert(reader2.HasRows);
+                reader2.Read();
+                FriendID = reader2.GetInt32(0);
+            }
+                
+            
+            
+            cmd2.CommandText = $"Select Ocena from osoby_spotkania where Id_s = {meetingID} And Id_o = {currentID};";
+            using (var reader2 = cmd2.ExecuteReader())
+            {
+                reader2.Read();
+                var grade = reader2.GetInt32(0);
+                meetings.Add(new(dateYear, dateMonth, dateDay, dateHour, currentID, FriendID, grade));
+            }
+                
+            
         }
         return meetings;
     }
@@ -423,8 +440,8 @@ public class DatabaseModel {
             string dateString = $"{(meeting.Year)}-{(meeting.Month < 9 ? $"0{meeting.Month}" : $"{meeting.Month}")}-{(meeting.Day < 9 ? $"0{meeting.Day}" : $"{meeting.Day}")} {(meeting.Hour < 9 ? $"0{meeting.Hour}" : $"{meeting.Hour}")}:00:00";
             builder.Append($@"
                 INSERT INTO Spotkania(Status,Data) VALUES ('true','{dateString}');
-                INSERT INTO Osoby_Spotkania(Id_o,Id_s,Ocena,Chêtny) VALUES ({meeting.User0ID},last_insert_rowid(),0,1);
-                INSERT INTO Osoby_Spotkania(Id_o,Id_s,Ocena,Chêtny) VALUES ({meeting.User1ID},(SELECT Id_s FROM Osoby_Spotkania WHERE rowid = last_insert_rowid()),0,1);
+                INSERT INTO Osoby_Spotkania(Id_o,Id_s,Ocena,Chêtny) VALUES ({meeting.User0ID},last_insert_rowid(),{meeting.Grade},1);
+                INSERT INTO Osoby_Spotkania(Id_o,Id_s,Ocena,Chêtny) VALUES ({meeting.User1ID},(SELECT Id_s FROM Osoby_Spotkania WHERE rowid = last_insert_rowid()),{meeting.Grade},1);
             ");
         }
         builder.Append("COMMIT TRANSACTION;");

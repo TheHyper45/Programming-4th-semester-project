@@ -80,14 +80,14 @@ public class Calendar : MonoBehaviour {
         
         public int Grade { get; set; }
 
-        public Meeting(int year,int month,int day,int hour,int personID) {
+        public Meeting(int year,int month,int day,int hour,int personID,int grade) {
             Year = year;
             Month = month;
             Day = day;
             Hour = hour;
             PersonID = personID;
             
-            Grade = 0;
+            Grade = grade;
         }
         public new string ToString()
         {
@@ -116,7 +116,7 @@ public class Calendar : MonoBehaviour {
     {
         meets.Clear();
         foreach (var meet in databaseManagement.Model.GetMeetingsForCurrentAccount()) {
-            meets.Add(new(meet.Year,meet.Month,meet.Day,meet.Hour,meet.User1ID));
+            meets.Add(new(meet.Year,meet.Month,meet.Day,meet.Hour,meet.User1ID,meet.Grade));
 
         }
         friendIDs.Clear();
@@ -133,7 +133,7 @@ public class Calendar : MonoBehaviour {
         var currentUserId = databaseManagement.Model.GetCurrentAccountID();
         foreach (var meet in meets)
         {
-            databaseMeetings.Add(new(meet.Year, meet.Month, meet.Day, meet.Hour, currentUserId, meet.PersonID));
+            databaseMeetings.Add(new(meet.Year, meet.Month, meet.Day, meet.Hour, currentUserId, meet.PersonID,meet.Grade));
         }
         databaseManagement.Model.UpdateMeetingsForCurrentAccount(databaseMeetings);
     }
@@ -264,7 +264,7 @@ public class Calendar : MonoBehaviour {
                 }
             }
             AddingMeetingsPanel.SetActive(false);
-            meets.Add(new(currDate.Year,currDate.Month,dayToCalculation - startDay, hour, friendIDs[friendEnumDropdown.value]));
+            meets.Add(new(currDate.Year,currDate.Month,dayToCalculation - startDay, hour, friendIDs[friendEnumDropdown.value],0));
             UpdateCalendar(currDate.Year,currDate.Month);
             
         }
