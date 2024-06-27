@@ -1,9 +1,8 @@
-using Mono.Data.Sqlite;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Text;
-using static Calendar;
+using Mono.Data.Sqlite;
+using System.Diagnostics;
+using System.Collections.Generic;
 
 public class DatabaseModel {
     public class Entity {
@@ -48,17 +47,17 @@ public class DatabaseModel {
         public int Month { get; private set; }
         public int Day { get; private set; }
         public int Hour { get; private set; }
-        public int User0ID { get; private set; }
-        public int User1ID { get; private set; }
+        public int FriendID { get; private set; }
         public int Grade { get; private set; }
-        public Meeting(int year,int month,int day,int hour,int user0ID,int user1ID,int grade) {
+        public int FriendGrade { get; private set; }
+        public Meeting(int year,int month,int day,int hour,int friendID,int grade,int friendGrade) {
             Year = year;
             Month = month;
             Day = day;
             Hour = hour;
-            User0ID = user0ID;
-            User1ID = user1ID;
+            FriendID = friendID;
             Grade = grade;
+            FriendGrade = friendGrade;
         }
     }
 
@@ -239,7 +238,6 @@ public class DatabaseModel {
         using SqliteConnection conn = new($"Data Source={path};Version=3;New=False;");
         conn.Open();
         User user = null;
-
         using var cmd = conn.CreateCommand();
         cmd.CommandText = $"SELECT Imiê,Nazwisko,Login,Has³o,P³eæ,Telefon FROM Osoby WHERE Id = {accountID};";
         using var reader = cmd.ExecuteReader();
@@ -248,13 +246,13 @@ public class DatabaseModel {
             var sports = GetSports(accountID);
             var subjects = GetSubjects(accountID);
             user = new(accountID,
-                       reader.GetString(0),
-                       reader.GetString(1),
-                       reader.GetString(2),
-                       reader.GetString(3),
-                       reader.GetString(4),
-                       reader.GetString(5),
-                       languages,sports,subjects);
+                reader.GetString(0),
+                reader.GetString(1),
+                reader.GetString(2),
+                reader.GetString(3),
+                reader.GetString(4),
+                reader.GetString(5),
+                languages,sports,subjects);
         }
         return user;
     }
@@ -284,7 +282,6 @@ public class DatabaseModel {
         var currentLanguages = GetLanguagesForCurrentAccount();
         var currentSports = GetSportsForCurrentAccount();
         var currentSubjects = GetSubjectsForCurrentAccount();
-        var currentFriendIDs = GetFriendIDsForCurrentAccount();
 
         List<int> userIDs = new();
         Dictionary<int,int> userEvaluations = new();
@@ -294,21 +291,19 @@ public class DatabaseModel {
         conn.Open();
 
         using var cmd = conn.CreateCommand();
-        if(currentFriendIDs.Count == 0) {
-            cmd.CommandText = $"SELECT Id FROM Osoby WHERE Id <> {currentAccountID};";
-        }
-        else {
-            cmd.CommandText = $"SELECT Id FROM Osoby WHERE Id NOT IN ({currentAccountID},{string.Join(',',currentFriendIDs)});";
+        {
+            var ineligibleUserIDs = GetFriendIDsForCurrentAccount();
+            ineligibleUserIDs.Add(currentAccountID);
+            cmd.CommandText = $@"SELECT o.Id FROM Osoby o WHERE o.Id NOT IN ({string.Join(',',ineligibleUserIDs)}) AND NOT EXISTS
+                (SELECT 69 FROM Zbanowane_Osoby z WHERE (z.Id_1 = o.Id AND z.Id_2 = {currentAccountID}) OR (z.Id_1 = {currentAccountID} AND z.Id_2 = o.Id));";
         }
 
         using var reader = cmd.ExecuteReader();
         while(reader.HasRows && reader.Read()) {
             var userID = reader.GetInt32(0);
-            var userLanguages = GetLanguages(userID);
-            var userSports = GetSports(userID);
-            var userSubjects = GetSubjects(userID);
 
             int evaluation = 0;
+            var userLanguages = GetLanguages(userID);
             foreach(var currentLanguage in currentLanguages) {
                 foreach(var userLanguage in userLanguages) {
                     if(userLanguage.Name.Equals(currentLanguage.Name)) {
@@ -316,6 +311,7 @@ public class DatabaseModel {
                     }
                 }
             }
+            var userSports = GetSports(userID);
             foreach(var currentSport in currentSports) {
                 foreach(var userSport in userSports) {
                     if(userSport.Name.Equals(currentSport.Name)) {
@@ -323,6 +319,7 @@ public class DatabaseModel {
                     }
                 }
             }
+            var userSubjects = GetSubjects(userID);
             foreach(var currentSubject in currentSubjects) {
                 foreach(var userSubject in userSubjects) {
                     if(userSubject.Name.Equals(currentSubject.Name)) {
@@ -330,7 +327,8 @@ public class DatabaseModel {
                     }
                 }
             }
-            evaluation += random.Next(-10,11);
+            
+            evaluation += random.Next(-7,8);
             userEvaluations.Add(userID,evaluation);
             userIDs.Add(userID);
         }
@@ -354,8 +352,10 @@ public class DatabaseModel {
         cmd.CommandText = $@"
             BEGIN TRANSACTION;
             INSERT INTO Spotkania(Status,Data) VALUES ('true',date());
-            INSERT INTO Osoby_Spotkania(Id_o,Id_s,Ocena,Chêtny) VALUES ({currentID},last_insert_rowid(),1337,0);
-            INSERT INTO Osoby_Spotkania(Id_o,Id_s,Ocena,Chêtny) VALUES ({otherID},(SELECT Id_s FROM Osoby_Spotkania WHERE rowid = last_insert_rowid()),1337,0);
+            INSERT INTO Osoby_Spotkania(Id_o,Id_s,Ocena,Chêtny) VALUES
+                ({currentID},last_insert_rowid(),1337,0);
+            INSERT INTO Osoby_Spotkania(Id_o,Id_s,Ocena,Chêtny) VALUES
+                ({otherID},(SELECT Id_s FROM Osoby_Spotkania WHERE rowid = last_insert_rowid()),1337,0);
             COMMIT TRANSACTION;
         ";
         cmd.ExecuteNonQuery();
@@ -371,9 +371,11 @@ public class DatabaseModel {
         using var cmd = conn.CreateCommand();
         cmd.CommandText = $@"
             BEGIN TRANSACTION;
-            DELETE FROM Osoby_Spotkania WHERE Id_o = {otherID} AND Id_s IN (SELECT Id_s FROM Osoby_Spotkania WHERE Id_o = {currentID});
-            DELETE FROM Osoby_Spotkania WHERE Id_o = {currentID};
-            DELETE FROM Spotkania WHERE Id NOT IN (SELECT Id_s FROM Osoby_Spotkania);
+            CREATE TEMPORARY TABLE Spotkania_Id AS SELECT Id_s FROM Osoby_Spotkania WHERE Id_o = {otherID} AND Id_s IN
+                (SELECT Id_s FROM Osoby_Spotkania WHERE Id_o = {currentID});
+            DELETE FROM Osoby_Spotkania WHERE (Id_o = {otherID} OR Id_o = {currentID}) AND Id_s IN (SELECT Id_s FROM Spotkania_Id);
+            DELETE FROM Spotkania WHERE Id IN (SELECT Id_s FROM Spotkania_Id);
+            DROP TABLE Spotkania_Id;
             COMMIT TRANSACTION;
         ";
         cmd.ExecuteNonQuery();
@@ -388,7 +390,8 @@ public class DatabaseModel {
         conn.Open();
 
         using var cmd = conn.CreateCommand();
-        cmd.CommandText = $"SELECT Id_o FROM Osoby_Spotkania WHERE Chêtny = 0 AND Id_o <> {currentID} AND Id_s IN (SELECT Id_s FROM Osoby_Spotkania WHERE Chêtny = 0 AND Id_o = {currentID});";
+        cmd.CommandText = $@"SELECT Id_o FROM Osoby_Spotkania WHERE Id_o <> {currentID} AND Id_s IN
+            (SELECT Id_s FROM Osoby_Spotkania WHERE Chêtny = 0 AND Id_o = {currentID});";
         using var reader = cmd.ExecuteReader();
         while(reader.HasRows && reader.Read()) {
             userIDs.Add(reader.GetInt32(0));
@@ -405,7 +408,8 @@ public class DatabaseModel {
         conn.Open();
 
         using var cmd = conn.CreateCommand();
-        cmd.CommandText = $"SELECT Id,strftime('%Y',Data),strftime('%m',Data),strftime('%d',Data),strftime('%H',Data) FROM Spotkania WHERE Id IN (SELECT Id_s FROM Osoby_Spotkania WHERE Chêtny = 1 AND Id_o = {currentID});";
+        cmd.CommandText = $@"SELECT Id,strftime('%Y',Data),strftime('%m',Data),strftime('%d',Data),strftime('%H',Data) FROM Spotkania WHERE Id IN
+            (SELECT Id_s FROM Osoby_Spotkania WHERE Chêtny = 1 AND Id_o = {currentID});";
         using var reader = cmd.ExecuteReader();
         while(reader.HasRows && reader.Read()) {
             var meetingID = reader.GetInt32(0);
@@ -415,26 +419,25 @@ public class DatabaseModel {
             var dateHour = int.Parse(reader.GetString(4));
             
             using var cmd2 = conn.CreateCommand();
-            cmd2.CommandText = $"SELECT Id_o FROM Osoby_Spotkania WHERE Id_s = {meetingID} AND Id_o <> {currentID};";
-            var FriendID = 0;
-            using (var reader2 = cmd2.ExecuteReader())
-            {
+            cmd2.CommandText = $"SELECT Id_o,Ocena FROM Osoby_Spotkania WHERE Id_s = {meetingID} AND Id_o <> {currentID};";
+            var friendID = 0;
+            var friendGrade = 0;
+            using(var reader2 = cmd2.ExecuteReader()) {
                 Trace.Assert(reader2.HasRows);
                 reader2.Read();
-                FriendID = reader2.GetInt32(0);
+                friendID = reader2.GetInt32(0);
+                friendGrade = reader2.GetInt32(1);
             }
-                
-            
-            
-            cmd2.CommandText = $"Select Ocena from osoby_spotkania where Id_s = {meetingID} And Id_o = {currentID};";
-            using (var reader2 = cmd2.ExecuteReader())
-            {
+
+            int grade = 0;
+            cmd2.CommandText = $"SELECT Ocena FROM osoby_spotkania WHERE Id_s = {meetingID} AND Id_o = {currentID};";
+            using(var reader2 = cmd2.ExecuteReader()) {
+                Trace.Assert(reader2.HasRows);
                 reader2.Read();
-                var grade = reader2.GetInt32(0);
-                meetings.Add(new(dateYear, dateMonth, dateDay, dateHour, currentID, FriendID, grade));
+                grade = reader2.GetInt32(0);
             }
-                
-            
+
+            meetings.Add(new(dateYear,dateMonth,dateDay,dateHour,friendID,grade,friendGrade));
         }
         return meetings;
     }
@@ -454,11 +457,14 @@ public class DatabaseModel {
             DELETE FROM Spotkania WHERE Id NOT IN (SELECT Id_s FROM Osoby_Spotkania WHERE Chêtny = 1);
         ");
         foreach(var meeting in meetings) {
-            string dateString = $"{(meeting.Year)}-{(meeting.Month < 9 ? $"0{meeting.Month}" : $"{meeting.Month}")}-{(meeting.Day < 9 ? $"0{meeting.Day}" : $"{meeting.Day}")} {(meeting.Hour < 9 ? $"0{meeting.Hour}" : $"{meeting.Hour}")}:00:00";
+            var month = (meeting.Month < 9 ? $"0{meeting.Month}" : $"{meeting.Month}");
+            var day = (meeting.Day < 9 ? $"0{meeting.Day}" : $"{meeting.Day}");
+            var hour = (meeting.Hour < 9 ? $"0{meeting.Hour}" : $"{meeting.Hour}");
+
             builder.Append($@"
-                INSERT INTO Spotkania(Status,Data) VALUES ('true','{dateString}');
-                INSERT INTO Osoby_Spotkania(Id_o,Id_s,Ocena,Chêtny) VALUES ({meeting.User0ID},last_insert_rowid(),{meeting.Grade},1);
-                INSERT INTO Osoby_Spotkania(Id_o,Id_s,Ocena,Chêtny) VALUES ({meeting.User1ID},(SELECT Id_s FROM Osoby_Spotkania WHERE rowid = last_insert_rowid()),{meeting.Grade},1);
+                INSERT INTO Spotkania(Status,Data) VALUES ('true','{(meeting.Year)}-{month}-{day} {hour}:00:00');
+                INSERT INTO Osoby_Spotkania(Id_o,Id_s,Ocena,Chêtny) VALUES ({currentID},last_insert_rowid(),{meeting.Grade},1);
+                INSERT INTO Osoby_Spotkania(Id_o,Id_s,Ocena,Chêtny) VALUES ({meeting.FriendID},(SELECT Id_s FROM Osoby_Spotkania WHERE rowid = last_insert_rowid()),{meeting.FriendGrade},1);
             ");
         }
         builder.Append("COMMIT TRANSACTION;");

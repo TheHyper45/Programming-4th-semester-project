@@ -77,26 +77,21 @@ public class Calendar : MonoBehaviour {
         public int Day { get; private set; }
         public int Hour { get; private set; }
         public int PersonID { get; private set; }
-        
         public int Grade { get; set; }
+        public int FriendGrade { get; private set; }
 
-        public Meeting(int year,int month,int day,int hour,int personID,int grade) {
+        public Meeting(int year,int month,int day,int hour,int personID,int grade,int friendGrade) {
             Year = year;
             Month = month;
             Day = day;
             Hour = hour;
             PersonID = personID;
-            
             Grade = grade;
-        }
-        public new string ToString()
-        {
-            return $"{Day}/{Month}/{Year}";
+            FriendGrade = friendGrade;
         }
     }
 
     private void Start() {
-        
         leftClickMonthButton.onClick.AddListener(() => {
             currDate = currDate.AddMonths(-1);
             UpdateCalendar(currDate.Year,currDate.Month);
@@ -112,31 +107,30 @@ public class Calendar : MonoBehaviour {
         deleteMeetingsButton.onClick.AddListener(DeleteMeetings);
         closeMeetingsButton.onClick.AddListener(() => { AddingMeetingsPanel.SetActive(false); });
     }
-    public void OnEnable()
-    {
-        meets.Clear();
-        foreach (var meet in databaseManagement.Model.GetMeetingsForCurrentAccount()) {
-            meets.Add(new(meet.Year,meet.Month,meet.Day,meet.Hour,meet.User1ID,meet.Grade));
 
+    public void OnEnable() {
+        meets.Clear();
+        foreach(var meet in databaseManagement.Model.GetMeetingsForCurrentAccount()) {
+            meets.Add(new(meet.Year,meet.Month,meet.Day,meet.Hour,meet.FriendID,meet.Grade,meet.FriendGrade));
         }
+
         friendIDs.Clear();
         friendEnumDropdown.ClearOptions();
-        foreach ((var Id, var FullName) in databaseManagement.Model.GetFriendUserNamesForCurrentAccount())
-        {
+        foreach((var Id,var FullName) in databaseManagement.Model.GetFriendUserNamesForCurrentAccount()) {
             friendEnumDropdown.AddOptions(new List<string>() { FullName });
             friendIDs.Add(Id);
         }
+        UpdateCalendar(currDate.Year,currDate.Month);
     }
-    public void OnDisable()
-    {
+
+    public void OnDisable() {
         List<DatabaseModel.Meeting> databaseMeetings = new();
-        var currentUserId = databaseManagement.Model.GetCurrentAccountID();
-        foreach (var meet in meets)
-        {
-            databaseMeetings.Add(new(meet.Year, meet.Month, meet.Day, meet.Hour, currentUserId, meet.PersonID,meet.Grade));
+        foreach(var meet in meets) {
+            databaseMeetings.Add(new(meet.Year,meet.Month,meet.Day,meet.Hour,meet.PersonID,meet.Grade,meet.FriendGrade));
         }
         databaseManagement.Model.UpdateMeetingsForCurrentAccount(databaseMeetings);
     }
+
     private void Update() {
         errorTextClearCooldown -= Time.deltaTime;
         if(errorTextClearCooldown < 0.0f) {
@@ -183,9 +177,9 @@ public class Calendar : MonoBehaviour {
                         Button button = weeks[w].GetChild(i).GetComponentInChildren<Button>();
                         button.enabled = true;
                         bool hasMeeting = false;
-                        foreach (var meeeting in meets)
+                        foreach (var meeting in meets)
                         {
-                            if (meeeting.Year == year && meeeting.Month == month && meeeting.Day == currDay - startDay)
+                            if (meeting.Year == year && meeting.Month == month && meeting.Day == currDay - startDay && meeting.Grade < 0)
                             {
                                 hasMeeting = true;
                                 weeks[w].GetChild(i).GetChild(1).gameObject.SetActive(true);
@@ -222,9 +216,9 @@ public class Calendar : MonoBehaviour {
                     Button button = weeks[i / 7].GetChild(i % 7).GetComponentInChildren<Button>();
                     button.enabled = true;
                     bool hasMeeting = false;
-                    foreach (var meeeting in meets)
+                    foreach (var meeting in meets)
                     {
-                        if (meeeting.Year == year && meeeting.Month == month && meeeting.Day == i - startDay)
+                        if (meeting.Year == year && meeting.Month == month && meeting.Day == i - startDay && meeting.Grade < 0)
                         {
                             hasMeeting = true;
                             weeks[i / 7].GetChild(i % 7).GetChild(1).gameObject.SetActive(true);
@@ -257,16 +251,15 @@ public class Calendar : MonoBehaviour {
                 return;
             }
             foreach(var meeting in meets) {
-                if(meeting.Year == currDate.Year && meeting.Month == currDate.Month && meeting.Day == dayToCalculation - startDay) {
+                if(meeting.Year == currDate.Year && meeting.Month == currDate.Month && meeting.Day == dayToCalculation - startDay && meeting.Grade < 0) {
                     errorText.text = "Ju¿ istnieje w tym dniu spotkanie.";
                     errorTextClearCooldown = 3.0f;
                     return;
                 }
             }
             AddingMeetingsPanel.SetActive(false);
-            meets.Add(new(currDate.Year,currDate.Month,dayToCalculation - startDay, hour, friendIDs[friendEnumDropdown.value],0));
+            meets.Add(new(currDate.Year,currDate.Month,dayToCalculation - startDay, hour, friendIDs[friendEnumDropdown.value],-1,-1));
             UpdateCalendar(currDate.Year,currDate.Month);
-            
         }
         else {
             errorText.text = "Musisz podaæ godzinê.";
@@ -277,7 +270,7 @@ public class Calendar : MonoBehaviour {
     public void ShowMeeting() {
         int startDay = GetMonthStartDay(currDate.Year,currDate.Month);
         foreach(var meeting in meets) {
-            if(meeting.Year == currDate.Year && meeting.Month == currDate.Month && meeting.Day == dayToCalculation - startDay) {
+            if(meeting.Year == currDate.Year && meeting.Month == currDate.Month && meeting.Day == dayToCalculation - startDay && meeting.Grade < 0) {
                 int index = friendIDs.IndexOf(meeting.PersonID);
                 if(meeting.Month <= 9) {
                     WholeAboutMeetingText.text = $"{meeting.Hour}:00 {meeting.Day + 1}.0{meeting.Month}.{meeting.Year} {friendEnumDropdown.options[index].text}";
@@ -296,7 +289,7 @@ public class Calendar : MonoBehaviour {
     public void DeleteMeetings() {
         int startDay = GetMonthStartDay(currDate.Year,currDate.Month);
         foreach(var meeting in meets) {
-            if(meeting.Year == currDate.Year && meeting.Month == currDate.Month && meeting.Day == dayToCalculation - startDay) {
+            if(meeting.Year == currDate.Year && meeting.Month == currDate.Month && meeting.Day == dayToCalculation - startDay && meeting.Grade < 0) {
                 meets.Remove(meeting);
                 UpdateCalendar(currDate.Year, currDate.Month);
                 break;
